@@ -1,47 +1,170 @@
 import Link from "next/link";
 
+const siteUrl = "https://anime-explorer-mal.vercel.app";
+
 export const metadata = {
-  title: "About — MAL Explorer",
+  title: "About — NEON CURATOR",
   description:
-    "Anime / manga discovery on top of MyAnimeList and AniList data, with multi-field filters, watchlist sync, and auto-updates.",
+    "NEON CURATOR is a fast, filter-first way to discover anime on top of MyAnimeList data — multi-field search, a private watchlist, and a daily auto-sync.",
+  alternates: { canonical: `${siteUrl}/about` },
+  openGraph: {
+    title: "NEON CURATOR — discover anime, filter-first",
+    description:
+      "Filter 15,000+ anime across score, type, genre, year, and status in one query. Keep a private watchlist. Built on MyAnimeList data.",
+    url: `${siteUrl}/about`,
+    siteName: "NEON CURATOR",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "NEON CURATOR — discover anime, filter-first",
+    description:
+      "Filter 15,000+ anime in one query. Keep a private watchlist. Built on MyAnimeList data.",
+  },
 };
+
+const FEATURES = [
+  {
+    title: "Filter across every dimension",
+    body: "Score, type, genre, year, airing status, member count — combine them all in a single query. The whole filter state lives in the URL, so any search is shareable.",
+  },
+  {
+    title: "A watchlist that's yours",
+    body: "Track what you're Watching, Completed, Deferred, Avoiding, or BRR. It's private to your Google account — we don't share, sell, or analytics-tag your list.",
+  },
+  {
+    title: "Ranking that surfaces hidden gems",
+    body: "A log-scale popularity formula keeps mega-popular titles from burying everything else, so cult favorites still get a fair shot at the top of your results.",
+  },
+];
+
+const STEPS = [
+  {
+    n: "1",
+    title: "Search or filter",
+    body: "Start with a title search, or open the filter matrix and stack conditions until the results match exactly what you're after.",
+  },
+  {
+    n: "2",
+    title: "Add to your watchlist",
+    body: "Sign in with Google and tag any title with a status. Your watchlist syncs and stays in step across sessions.",
+  },
+  {
+    n: "3",
+    title: "Stay current",
+    body: "A daily GitHub Action pulls fresh data from the Jikan API; check what's airing this week on the schedule page.",
+  },
+];
 
 export default function AboutPage() {
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
-      <Link href="/" className="text-xs text-muted-foreground hover:underline">
+    <main className="mx-auto max-w-4xl px-6 py-12">
+      <Link href="/" className="text-xs text-white/40 hover:text-white">
         ← Home
       </Link>
-      <h1 className="mt-3 text-3xl font-bold tracking-tight">About</h1>
-      <p className="mt-4 text-sm leading-7">
-        MAL Explorer is a faster, focused way to discover anime and
-        manga on top of the public MAL and AniList APIs. Filter by
-        score, type, genre, year, status, and members in one query;
-        rank by a log-scale popularity formula so cult titles aren&apos;t
-        buried under mega-popular ones; sync your watchlist.
-      </p>
 
-      <h2 className="mt-8 text-base font-semibold">What you can do</h2>
-      <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
-        <li>Filter the 14,800-title catalogue across multiple dimensions in one URL.</li>
-        <li>Keep a personal watchlist with statuses: Watching, Completed, Deferred, Avoiding, BRR.</li>
-        <li>Sync with MAL or AniList — your watchlist stays in step with the platform you already use.</li>
-        <li>Surprise yourself with <Link href="/random" className="underline">/random</Link> or <Link href="/genre/action" className="underline">/genre/[genre]</Link>.</li>
-        <li>Check what&apos;s airing this week on <Link href="/schedule" className="underline">/schedule</Link>.</li>
-      </ul>
+      {/* Hero */}
+      <section className="mt-6">
+        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+          Discover anime, filter-first.
+        </h1>
+        <p className="mt-4 max-w-prose text-sm leading-7 text-white/60">
+          NEON CURATOR is a fast, focused way to explore anime on top of public
+          MyAnimeList data. Filter 15,000+ titles across score, type, genre,
+          year, and status in one query — then keep a private watchlist of what
+          you find.
+        </p>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link
+            href="/"
+            className="inline-flex min-h-11 items-center rounded-sm bg-primary px-6 py-3 text-[11px] font-black uppercase tracking-widest text-on-primary transition-opacity hover:opacity-90"
+          >
+            Start exploring
+          </Link>
+          <Link
+            href="/schedule"
+            className="inline-flex min-h-11 items-center rounded-sm border border-outline/20 px-6 py-3 text-[11px] font-black uppercase tracking-widest text-white/70 transition-colors hover:text-white"
+          >
+            See what&apos;s airing
+          </Link>
+        </div>
+      </section>
 
-      <h2 className="mt-8 text-base font-semibold">How it stays fresh</h2>
-      <p className="mt-2 text-sm leading-7">
-        A daily GitHub Action pulls deltas from the Jikan API at midnight UTC.
-        A separate quarterly job does a full refresh. An always-warm in-memory
-        cache means searches are sub-millisecond once the server is up.
-      </p>
+      {/* Features */}
+      <section className="mt-14">
+        <h2 className="text-[11px] font-black uppercase tracking-[0.3em] text-white/30">
+          What you get
+        </h2>
+        <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+          {FEATURES.map((f) => (
+            <div
+              key={f.title}
+              className="rounded-sm border border-outline/10 bg-surface-container-low p-5"
+            >
+              <h3 className="text-sm font-semibold text-white">{f.title}</h3>
+              <p className="mt-2 text-xs leading-6 text-white/50">{f.body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
 
-      <h2 className="mt-8 text-base font-semibold">Privacy</h2>
-      <p className="mt-2 text-sm leading-7">
-        Sign-in is Google OAuth. Your watchlist is private to your account.
-        We don&apos;t share, sell, or analytics-tag anything. See <Link href="/terms" className="underline">/terms</Link> for the rest.
-      </p>
+      {/* How it works */}
+      <section className="mt-14">
+        <h2 className="text-[11px] font-black uppercase tracking-[0.3em] text-white/30">
+          How it works
+        </h2>
+        <ol className="mt-4 space-y-4">
+          {STEPS.map((s) => (
+            <li key={s.n} className="flex gap-4">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border border-primary/30 bg-primary/10 text-xs font-black text-primary">
+                {s.n}
+              </span>
+              <div>
+                <h3 className="text-sm font-semibold text-white">{s.title}</h3>
+                <p className="mt-1 text-xs leading-6 text-white/50">{s.body}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      {/* How it stays fresh */}
+      <section className="mt-14">
+        <h2 className="text-[11px] font-black uppercase tracking-[0.3em] text-white/30">
+          How it stays fresh
+        </h2>
+        <p className="mt-3 max-w-prose text-sm leading-7 text-white/60">
+          A daily GitHub Action pulls deltas from the Jikan API at midnight UTC,
+          and a separate quarterly job does a full refresh. An always-warm
+          in-memory cache keeps searches sub-millisecond once the server is up.
+        </p>
+      </section>
+
+      {/* Privacy */}
+      <section className="mt-14">
+        <h2 className="text-[11px] font-black uppercase tracking-[0.3em] text-white/30">
+          Privacy
+        </h2>
+        <p className="mt-3 max-w-prose text-sm leading-7 text-white/60">
+          Sign-in is Google OAuth. Your watchlist is private to your account —
+          we don&apos;t share or sell it. See{" "}
+          <Link href="/terms" className="underline">
+            /terms
+          </Link>{" "}
+          for the rest.
+        </p>
+      </section>
+
+      {/* Closing CTA */}
+      <section className="mt-14 rounded-sm border border-outline/10 bg-surface-container-low p-6 text-center">
+        <p className="text-sm text-white/70">Ready to find your next watch?</p>
+        <Link
+          href="/"
+          className="mt-4 inline-flex min-h-11 items-center rounded-sm bg-primary px-8 py-3 text-[11px] font-black uppercase tracking-widest text-on-primary transition-opacity hover:opacity-90"
+        >
+          Open NEON CURATOR
+        </Link>
+      </section>
     </main>
   );
 }
