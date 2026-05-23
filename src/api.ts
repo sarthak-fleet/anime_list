@@ -137,16 +137,36 @@ export const updateLatestTopMangaData = async (
   maxPages: number = API_CONFIG.mangaDailyUpdatePages,
 ): Promise<void> => {
   const p0 = performance.now();
-  const allFetchedManga: MangaItem[] = [];
+  let pending: MangaItem[] = [];
+  let totalSaved = 0;
+  const FLUSH_EVERY_PAGES = 25;
+  const MAX_PAGE_RETRIES = 3;
 
   console.log(`Fetching top manga (up to ${maxPages} pages)...`);
 
+  const flushPending = async (): Promise<void> => {
+    if (pending.length === 0) return;
+    const batch = pending;
+    pending = [];
+    await upsertMangaBatch(batch);
+    totalSaved += batch.length;
+    console.log(`  saved ${totalSaved} titles to catalog database`);
+  };
+
   for (let page = 1; page <= maxPages; page++) {
     const url = `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.topManga}?page=${page}&limit=20`;
-    const data = await fetchFromApi<ApiResponse<RawMangaItem[]>>(url);
+    let data: ApiResponse<RawMangaItem[]> | null = null;
+
+    for (let attempt = 1; attempt <= MAX_PAGE_RETRIES; attempt++) {
+      data = await fetchFromApi<ApiResponse<RawMangaItem[]>>(url);
+      if (data?.data && Array.isArray(data.data)) break;
+      if (attempt < MAX_PAGE_RETRIES) {
+        console.warn(`  page ${page} failed (attempt ${attempt}/${MAX_PAGE_RETRIES}), retrying...`);
+      }
+    }
 
     if (!data?.data || !Array.isArray(data.data)) {
-      console.error(`Invalid manga data on page ${page}`);
+      console.error(`Invalid manga data on page ${page} after ${MAX_PAGE_RETRIES} attempts`);
       break;
     }
 
@@ -159,21 +179,26 @@ export const updateLatestTopMangaData = async (
         manga.favorites &&
         manga.year
       ) {
-        allFetchedManga.push(manga);
+        pending.push(manga);
       }
     }
 
-    if (!data.pagination?.has_next_page) break;
-    if (page % 25 === 0) {
-      console.log(`  page ${page}/${maxPages} — ${allFetchedManga.length} titles so far`);
+    if (page % FLUSH_EVERY_PAGES === 0) {
+      console.log(
+        `  page ${page}/${maxPages} — ${totalSaved + pending.length} titles fetched`,
+      );
+      await flushPending();
     }
+
+    if (!data.pagination?.has_next_page) break;
   }
 
-  if (allFetchedManga.length > 0) {
-    console.log(`Saving ${allFetchedManga.length} manga to catalog database...`);
-    await upsertMangaBatch(allFetchedManga);
-  } else {
+  await flushPending();
+
+  if (totalSaved === 0) {
     console.log("No manga titles fetched.");
+  } else {
+    console.log(`Saved ${totalSaved} manga total.`);
   }
 
   console.log(
