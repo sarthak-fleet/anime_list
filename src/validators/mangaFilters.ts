@@ -47,6 +47,7 @@ export const mangaFilterRequestSchema = z.object({
   filters: mangaFiltersSchema,
   hideWatched: z.array(watchTagSchema).default([]),
   pagesize: z.number().int().min(1).default(50),
+  offset: z.number().int().min(0).default(0),
   sortBy: numericFieldSchema.optional(),
 });
 

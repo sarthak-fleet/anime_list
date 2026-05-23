@@ -18,15 +18,6 @@ const TAG_COLOR_PALETTE = [
   "#14b8a6",
 ] as const;
 
-const LEGACY_TAG_NAMES = [
-  "completed",
-  "dropped",
-  "delaying",
-  "brr",
-  "avoiding",
-  "deferred",
-] as const;
-
 const getDefaultTagColor = (tag: string): string => {
   const defaultColor = DEFAULT_TAG_COLORS[tag];
   if (defaultColor) return defaultColor;
@@ -292,63 +283,6 @@ export async function migrateWatchlistToTagIds(): Promise<void> {
   ]);
 
   console.log("Watchlist tag_id migration complete");
-}
-
-export async function migrateLegacyTagsToDone(): Promise<void> {
-  const db = getDb();
-  const placeholders = LEGACY_TAG_NAMES.map(() => "?").join(", ");
-
-  const affectedUsers = await db.execute({
-    sql: `SELECT DISTINCT user_id FROM user_tags WHERE lower(name) IN (${placeholders})`,
-    args: [...LEGACY_TAG_NAMES],
-  });
-
-  for (const row of affectedUsers.rows) {
-    const userId = row.user_id as string;
-
-    let doneTag = await db.execute({
-      sql: "SELECT id FROM user_tags WHERE user_id = ? AND lower(name) = 'done' LIMIT 1",
-      args: [userId],
-    });
-
-    if (doneTag.rows.length === 0) {
-      const doneId = crypto.randomUUID();
-      await db.execute({
-        sql: "INSERT INTO user_tags (id, user_id, name, color) VALUES (?, ?, 'Done', ?)",
-        args: [doneId, userId, DEFAULT_TAG_COLORS.Done],
-      });
-      doneTag = await db.execute({
-        sql: "SELECT id FROM user_tags WHERE user_id = ? AND lower(name) = 'done' LIMIT 1",
-        args: [userId],
-      });
-    }
-
-    const doneId = doneTag.rows[0].id as string;
-
-    const legacyTags = await db.execute({
-      sql: `SELECT id FROM user_tags WHERE user_id = ? AND lower(name) IN (${placeholders})`,
-      args: [userId, ...LEGACY_TAG_NAMES],
-    });
-
-    for (const legacy of legacyTags.rows) {
-      const legacyTagId = legacy.id as string;
-      await db.batch([
-        {
-          sql: "UPDATE anime_watchlist SET tag_id = ? WHERE user_id = ? AND tag_id = ?",
-          args: [doneId, userId, legacyTagId],
-        },
-        {
-          sql: "UPDATE manga_watchlist SET tag_id = ? WHERE user_id = ? AND tag_id = ?",
-          args: [doneId, userId, legacyTagId],
-        },
-      ]);
-    }
-
-    await db.execute({
-      sql: `DELETE FROM user_tags WHERE user_id = ? AND lower(name) IN (${placeholders})`,
-      args: [userId, ...LEGACY_TAG_NAMES],
-    });
-  }
 }
 
 export async function migrateAnimeDataTable(): Promise<void> {

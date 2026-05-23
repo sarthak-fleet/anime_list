@@ -272,8 +272,8 @@ export const getAnimeScore = (
       switch (animeField) {
         case AnimeField.Genres:
         case AnimeField.Themes: {
-          let multiplier = fieldWiseMultipliers.get(animeField);
-          let animeInfoForField = getMapValue(anime, animeField);
+          const multiplier = fieldWiseMultipliers.get(animeField);
+          const animeInfoForField = getMapValue(anime, animeField);
           if (multiplier) {
             Object.keys(animeInfoForField).forEach((fieldVal) => {
               const multiplierValue = (multiplier as { [key: string]: number })[

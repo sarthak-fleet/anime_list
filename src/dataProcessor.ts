@@ -88,31 +88,6 @@ const cleanAnimeData = (rawData: RawAnimeData): AnimeItem[] => {
     );
 };
 
-export const cleanExistingJsonFile = async (): Promise<AnimeItem[] | null> => {
-  try {
-    const { readJsonFile, writeJsonFile } = await import("./utils/file");
-    console.log(`Reading ${FILE_PATHS.animeData}...`);
-    const rawData = await readJsonFile<Record<string, RawAnimeData[0]>>(
-      FILE_PATHS.animeData
-    );
-    if (!rawData) {
-      throw new Error("No data found in anime data file");
-    }
-
-    console.log("Cleaning data...");
-    const dataArray = Object.values(rawData)
-      // .filter(anime => anime.members && anime.members > 10000);
-    const cleanedData = cleanAnimeData(dataArray);
-    console.log(`Writing cleaned data to ${FILE_PATHS.cleanAnimeData}...`);
-    await writeJsonFile(FILE_PATHS.cleanAnimeData, cleanedData);
-
-    return cleanedData;
-  } catch (error) {
-    console.error("Error during cleaning:", error);
-    throw error;
-  }
-};
-
 // Manga data processing functions
 const transformRawManga = (rawManga: RawMangaData[0]): MangaItem => {
   return {
@@ -329,7 +304,8 @@ export const filterMangaList = async (
   filters: MangaFilter[]
 ): Promise<MangaItem[]> => {
   try {
-    const mangaList = (await getMangaStore()).getMangaList();
+    const { mangaStore } = await import("./store/mangaStore");
+    const mangaList = await mangaStore.getMangaList();
 
     return filterCollection(mangaList, filters, {
       getFieldValue: getMangaFieldValue,

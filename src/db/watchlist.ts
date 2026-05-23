@@ -443,6 +443,18 @@ export async function deleteFromAnimeWatchlist(
   await db.batch(statements);
 }
 
+export async function deleteFromMangaWatchlist(
+  malIds: string[],
+  userId: string = "default",
+): Promise<void> {
+  const db = getDb();
+  const statements = malIds.map((id) => ({
+    sql: "DELETE FROM manga_watchlist WHERE user_id = ? AND mal_id = ?",
+    args: [userId, id],
+  }));
+  await db.batch(statements);
+}
+
 export async function updateAnimeWatchlistNote(
   malId: string,
   note: string | null,

@@ -66,10 +66,7 @@ export const getAnimeStats = async (
 export const getMangaStats = async (
   mangaList: MangaItem[] | null = null
 ): Promise<AnimeStats> => {
-  const data =
-    mangaList ||
-    ((await import("./utils/file").then((m) => m.readJsonFile(FILE_PATHS.cleanMangaData))) as MangaItem[]) ||
-    [];
+  const data = mangaList ?? (await import("./store/mangaStore").then((m) => m.mangaStore.getMangaList()));
 
   const percentiles: Record<string, Percentiles> = {};
   Object.entries(PERCENTILE_FIELDS).forEach(([key, field]) => {
