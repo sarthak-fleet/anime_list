@@ -2,10 +2,10 @@ name: Deploy anime_list to Cloudflare Pages
 on:
   push:
     branches: [main]
-    paths: ['app/**', 'src/**', 'components/**', 'lib/**', 'scripts/prepare-pages-deploy.mjs', 'package.json', 'pnpm-lock.yaml', 'next.config.*', 'open-next.config.ts', 'wrangler.toml']
+    paths: ['.github/workflows/deploy.yml', 'app/**', 'src/**', 'components/**', 'lib/**', 'scripts/prepare-pages-deploy.mjs', 'package.json', 'pnpm-lock.yaml', 'next.config.*', 'open-next.config.ts', 'wrangler.toml']
   pull_request:
     branches: [main]
-    paths: ['app/**', 'src/**', 'components/**', 'lib/**', 'scripts/prepare-pages-deploy.mjs', 'package.json', 'pnpm-lock.yaml', 'next.config.*', 'open-next.config.ts', 'wrangler.toml']
+    paths: ['.github/workflows/deploy.yml', 'app/**', 'src/**', 'components/**', 'lib/**', 'scripts/prepare-pages-deploy.mjs', 'package.json', 'pnpm-lock.yaml', 'next.config.*', 'open-next.config.ts', 'wrangler.toml']
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -32,7 +32,8 @@ jobs:
       - id: deploy
         uses: cloudflare/wrangler-action@v3
         with:
-          apiToken: ${{ secrets.CF_API_TOKEN }}
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN || secrets.CF_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID || '7d048325699a5acddb44d3be31cf6ba9' }}
           command: pages deploy .pages-deploy --project-name=anime-list --branch=main --commit-dirty=true
       - name: Smoke production
         run: |
@@ -61,7 +62,8 @@ jobs:
       - id: deploy
         uses: cloudflare/wrangler-action@v3
         with:
-          apiToken: ${{ secrets.CF_API_TOKEN }}
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN || secrets.CF_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID || '7d048325699a5acddb44d3be31cf6ba9' }}
           command: pages deploy .pages-deploy --project-name=anime-list --branch=pr-${{ github.event.number }} --commit-dirty=true
       - name: Smoke preview
         run: |
