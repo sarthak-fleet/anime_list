@@ -64,7 +64,7 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <body
         data-analytics="true"
-        className={`min-h-screen bg-background text-foreground ${inter.variable} ${inter.className}`}
+        className={`min-h-screen bg-background text-foreground ${inter.variable}`}
       >
         <AnalyticsProvider>
           {/* Google Identity Services — defer past page idle since the
