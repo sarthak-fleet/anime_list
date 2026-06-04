@@ -482,6 +482,15 @@ app.get("/api/stats", optionalAuth, async (c) => {
   return response;
 });
 
+// Anime / manga catalogs refresh once per day, so detail responses for
+// anonymous traffic are safe to cache for ~24h. Signed-in users embed
+// per-user watchlist state into the response, so we deliberately skip
+// the cache entirely when a user is attached. Cache key bumps via the
+// :v1 suffix below.
+const ANIME_DETAIL_CACHE_TTL_SECONDS = 24 * 60 * 60;
+const ANIME_DETAIL_CACHE_KEY_PREFIX = "https://mal-cache.local/api/anime/";
+const MANGA_DETAIL_CACHE_KEY_PREFIX = "https://mal-cache.local/api/manga/";
+
 app.get("/api/anime/:malId", optionalAuth, async (c) => {
   const parsed = animeMalIdParamsSchema.safeParse({
     malId: c.req.param("malId"),
@@ -491,13 +500,27 @@ app.get("/api/anime/:malId", optionalAuth, async (c) => {
   }
 
   const malId = parsed.data.malId;
+  const user = c.get("user");
+  // Only cache anonymous responses — authenticated responses embed the
+  // signed-in user's watchlistEntry, which is per-user data.
+  const edgeCache = (caches as unknown as { default: Cache }).default;
+  const cacheUrl = user ? null : `${ANIME_DETAIL_CACHE_KEY_PREFIX}${malId}:v1`;
+
+  if (cacheUrl) {
+    const cached = await edgeCache.match(cacheUrl);
+    if (cached) {
+      const hit = new Response(cached.body, cached);
+      hit.headers.set("X-Detail-Cache", "HIT");
+      return hit;
+    }
+  }
+
   const anime = await getAnimeByMalId(malId);
 
   if (!anime) {
     return c.json({ error: "Anime not found" }, 404);
   }
 
-  const user = c.get("user");
   const [supplemental, watchlistEntry, animeList] = await Promise.all([
     getAnimeDetailSupplementalData(malId),
     user
@@ -549,7 +572,19 @@ app.get("/api/anime/:malId", optionalAuth, async (c) => {
       : null,
   };
 
-  return c.json(response);
+  const jsonResponse = c.json(response);
+  if (cacheUrl) {
+    const cacheable = new Response(jsonResponse.body, jsonResponse);
+    cacheable.headers.set(
+      "Cache-Control",
+      `public, max-age=0, s-maxage=${ANIME_DETAIL_CACHE_TTL_SECONDS}`,
+    );
+    cacheable.headers.set("X-Detail-Cache", "MISS");
+    c.executionCtx.waitUntil(edgeCache.put(cacheUrl, cacheable.clone()));
+    return cacheable;
+  }
+  jsonResponse.headers.set("X-Detail-Cache", "BYPASS");
+  return jsonResponse;
 });
 
 app.post("/api/anime/:malId/note", requireAuth, async (c) => {

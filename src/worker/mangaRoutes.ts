@@ -268,6 +268,13 @@ export function registerMangaRoutes(
     return c.json({ success: true, message: "Manga removed from watchlist" });
   });
 
+  // Catalog data refreshes once a day, so anonymous detail responses are
+  // safe to cache for ~24h. Signed-in responses embed per-user watchlist
+  // state, so we bypass the cache when a user is present. Bump :v1 to
+  // invalidate after response-shape changes.
+  const MANGA_DETAIL_CACHE_TTL_SECONDS = 24 * 60 * 60;
+  const MANGA_DETAIL_CACHE_KEY_PREFIX = "https://mal-cache.local/api/manga/";
+
   app.get("/api/manga/:malId", optionalAuth, async (c) => {
     const malId = Number(c.req.param("malId"));
     if (!Number.isInteger(malId) || malId <= 0) {
@@ -275,6 +282,20 @@ export function registerMangaRoutes(
     }
 
     const user = c.get("user");
+    const edgeCache = (caches as unknown as { default: Cache }).default;
+    const cacheUrl = user
+      ? null
+      : `${MANGA_DETAIL_CACHE_KEY_PREFIX}${malId}:v1`;
+
+    if (cacheUrl) {
+      const cached = await edgeCache.match(cacheUrl);
+      if (cached) {
+        const hit = new Response(cached.body, cached);
+        hit.headers.set("X-Detail-Cache", "HIT");
+        return hit;
+      }
+    }
+
     const [manga, watchlist] = await Promise.all([
       getMangaByMalId(malId),
       user?.userId ? getMangaWatchlist(user.userId) : Promise.resolve(null),
@@ -285,7 +306,7 @@ export function registerMangaRoutes(
     }
 
     const entry = watchlist?.manga[String(malId)];
-    return c.json({
+    const jsonResponse = c.json({
       manga: {
         mal_id: manga.mal_id,
         url: manga.url,
@@ -314,5 +335,18 @@ export function registerMangaRoutes(
       },
       watchlistEntry: entry ? { status: entry.status } : null,
     });
+
+    if (cacheUrl) {
+      const cacheable = new Response(jsonResponse.body, jsonResponse);
+      cacheable.headers.set(
+        "Cache-Control",
+        `public, max-age=0, s-maxage=${MANGA_DETAIL_CACHE_TTL_SECONDS}`,
+      );
+      cacheable.headers.set("X-Detail-Cache", "MISS");
+      c.executionCtx.waitUntil(edgeCache.put(cacheUrl, cacheable.clone()));
+      return cacheable;
+    }
+    jsonResponse.headers.set("X-Detail-Cache", "BYPASS");
+    return jsonResponse;
   });
 }
