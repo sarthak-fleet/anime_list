@@ -9,7 +9,9 @@ import {
   addToMangaWatchlist,
   getWatchlistTags,
 } from "@/lib/api";
+import { useAuth } from "@/lib/auth";
 import type { DiscoveryQueueResponse } from "@/lib/types";
+import GoogleSignInButton from "./GoogleSignInButton";
 import { Button } from "./ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 
@@ -160,10 +162,12 @@ function DiscoveryCard({ item, onDismiss, onAdd, onSkip, isPending }: DiscoveryC
 export function DiscoveryQueue() {
   const queryClient = useQueryClient();
   const [currentIndex, setCurrentIndex] = useState(0);
+  const { user, loading: authLoading } = useAuth();
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["discoveryQueue"],
     queryFn: () => getDiscoveryQueue(50),
+    enabled: !!user,
     staleTime: 5 * 60 * 1000,
   });
 
@@ -213,6 +217,25 @@ export function DiscoveryQueue() {
   };
 
   const isPending = dismissMutation.isPending || addMutation.isPending;
+
+  if (authLoading) return null;
+
+  if (!user) {
+    return (
+      <div className="container mx-auto py-8">
+        <div className="mx-auto flex max-w-lg flex-col items-center justify-center rounded-xl border border-border bg-card px-6 py-12 text-center shadow-sm">
+          <h1 className="text-3xl font-bold">Weekly Discovery</h1>
+          <p className="mt-3 text-sm leading-6 text-muted-foreground">
+            Sign in to get a seasonal anime and manga queue ranked against your
+            watchlist. Search stays public; discovery needs your taste history.
+          </p>
+          <div className="mt-6">
+            <GoogleSignInButton />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

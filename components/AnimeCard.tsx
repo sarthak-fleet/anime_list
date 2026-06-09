@@ -117,6 +117,7 @@ export default function AnimeCard({
           )}
 
           <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+          <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/85 via-black/45 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 pointer-events-none" />
 
           {/* Score badge */}
           {anime.score > 0 && (
@@ -129,8 +130,8 @@ export default function AnimeCard({
 
           {/* Type badge */}
           {anime.type && (
-            <div className="absolute top-2 right-2 bg-surface/80 backdrop-blur-md rounded-sm px-2 py-1 border border-outline/20">
-              <span className="text-[10px] font-bold text-white/80 uppercase tracking-widest">
+            <div className="absolute top-2 right-2 bg-black/55 backdrop-blur-md rounded-sm px-2 py-1 border border-white/15 shadow-[0_8px_24px_rgba(0,0,0,0.45)]">
+              <span className="text-[10px] font-bold text-white uppercase tracking-widest drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
                 {anime.type}
               </span>
             </div>
@@ -143,7 +144,7 @@ export default function AnimeCard({
                 {anime.genres.slice(0, 3).map((g) => (
                   <span
                     key={g}
-                    className="text-[9px] font-black tracking-[0.2em] uppercase text-white bg-white/10 backdrop-blur-sm px-2 py-1 rounded-sm"
+                    className="text-[9px] font-black tracking-[0.2em] uppercase text-white bg-black/45 backdrop-blur-sm px-2 py-1 rounded-sm shadow-[0_4px_18px_rgba(0,0,0,0.45)] drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)]"
                   >
                     {g}
                   </span>
@@ -151,7 +152,7 @@ export default function AnimeCard({
               </div>
             )}
             {anime.synopsis && (
-              <p className="text-[11px] font-body text-white/70 line-clamp-3 leading-relaxed">
+              <p className="text-[11px] font-body text-white line-clamp-3 leading-relaxed drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)]">
                 {anime.synopsis}
               </p>
             )}
