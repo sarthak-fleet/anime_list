@@ -602,6 +602,36 @@ app.get("/api/stats", optionalAuth, async (c) => {
   return response;
 });
 
+// NOTE: must be registered before /api/anime/:malId — Hono matches routes in
+// registration order, so the param route would otherwise swallow "random"
+// and return 400 from the malId validator.
+app.get("/api/anime/random", async (c) => {
+  const genre = (c.req.query("genre") || "").trim();
+  const limit = Math.min(Math.max(parseInt(c.req.query("limit") || "1", 10) || 1, 1), 20);
+
+  let catalog = await animeStore.getAnimeList();
+  if (genre) {
+    const normalizedGenre = genre.toLowerCase();
+    catalog = catalog.filter((anime) =>
+      Object.keys(anime.genres).some((g) => g.toLowerCase() === normalizedGenre),
+    );
+  }
+
+  if (catalog.length === 0) {
+    return c.json({ results: [] });
+  }
+
+  const shuffled = [...catalog].sort(() => Math.random() - 0.5);
+  const results = shuffled.slice(0, limit).map((anime) => ({
+    mal_id: anime.mal_id,
+    id: anime.mal_id,
+    title: anime.title,
+    title_english: anime.title_english,
+  }));
+
+  return c.json({ results });
+});
+
 // Anime / manga catalogs refresh once per day, so detail responses for
 // anonymous traffic are safe to cache for ~24h. Signed-in users embed
 // per-user watchlist state into the response, so we deliberately skip
@@ -832,33 +862,6 @@ app.get("/api/watchlist/recommendations", requireAuth, async (c) => {
 
   const allAnime = await animeStore.getAnimeList();
   return c.json(buildTasteRecommendations(allAnime, watchlist));
-});
-
-app.get("/api/anime/random", async (c) => {
-  const genre = (c.req.query("genre") || "").trim();
-  const limit = Math.min(Math.max(parseInt(c.req.query("limit") || "1", 10) || 1, 1), 20);
-
-  let catalog = await animeStore.getAnimeList();
-  if (genre) {
-    const normalizedGenre = genre.toLowerCase();
-    catalog = catalog.filter((anime) =>
-      Object.keys(anime.genres).some((g) => g.toLowerCase() === normalizedGenre),
-    );
-  }
-
-  if (catalog.length === 0) {
-    return c.json({ results: [] });
-  }
-
-  const shuffled = [...catalog].sort(() => Math.random() - 0.5);
-  const results = shuffled.slice(0, limit).map((anime) => ({
-    mal_id: anime.mal_id,
-    id: anime.mal_id,
-    title: anime.title,
-    title_english: anime.title_english,
-  }));
-
-  return c.json({ results });
 });
 
 app.get("/api/watchlist/enriched", requireAuth, async (c) => {
