@@ -23,6 +23,10 @@ export interface WatchlistImportPreview {
   skipped: number;
 }
 
+export type WatchlistImportParseResult =
+  | { ok: true; preview: WatchlistImportPreview }
+  | { ok: false; error: string };
+
 const MAL_STATUS_MAP: Record<string, ExternalWatchStatus> = {
   watching: "Watching",
   completed: "Completed",
@@ -153,6 +157,14 @@ export function parseAniListJson(rawJson: string): WatchlistImportPreview {
   }
 
   return summarize("anilist", entries, skipped);
+}
+
+export function safeParseAniListJson(rawJson: string): WatchlistImportParseResult {
+  try {
+    return { ok: true, preview: parseAniListJson(rawJson) };
+  } catch {
+    return { ok: false, error: "Invalid AniList JSON payload" };
+  }
 }
 
 export function buildAniListExport(watchlist: Record<string, WatchedAnime>) {

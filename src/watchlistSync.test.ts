@@ -2,6 +2,7 @@ import {
   buildAniListExport,
   parseAniListJson,
   parseMalAnimeXml,
+  safeParseAniListJson,
 } from "./watchlistSync";
 
 describe("watchlist sync", () => {
@@ -61,6 +62,13 @@ describe("watchlist sync", () => {
       malId: "5114",
       status: "Watching",
       note: "rewatch",
+    });
+  });
+
+  it("rejects invalid AniList JSON without throwing", () => {
+    expect(safeParseAniListJson("{not-json")).toEqual({
+      ok: false,
+      error: "Invalid AniList JSON payload",
     });
   });
 

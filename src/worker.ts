@@ -53,8 +53,8 @@ import {
 } from "./validators/watchlistTags";
 import {
   buildAniListExport,
-  parseAniListJson,
   parseMalAnimeXml,
+  safeParseAniListJson,
 } from "./watchlistSync";
 import {
   addToScheduleSchema,
@@ -904,7 +904,11 @@ app.post("/api/watchlist/import/preview", requireAuth, async (c) => {
   if (!payload.trim()) {
     return c.json({ error: "Import payload is required" }, 400);
   }
-  return c.json(source === "anilist" ? parseAniListJson(payload) : parseMalAnimeXml(payload));
+  if (source === "anilist") {
+    const parsed = safeParseAniListJson(payload);
+    return parsed.ok ? c.json(parsed.preview) : c.json({ error: parsed.error }, 400);
+  }
+  return c.json(parseMalAnimeXml(payload));
 });
 
 app.post("/api/watchlist/import/apply", requireAuth, async (c) => {
@@ -915,7 +919,16 @@ app.post("/api/watchlist/import/apply", requireAuth, async (c) => {
   if (!payload.trim()) {
     return c.json({ error: "Import payload is required" }, 400);
   }
-  const preview = source === "anilist" ? parseAniListJson(payload) : parseMalAnimeXml(payload);
+  const preview =
+    source === "anilist"
+      ? (() => {
+          const parsed = safeParseAniListJson(payload);
+          return parsed.ok ? parsed.preview : null;
+        })()
+      : parseMalAnimeXml(payload);
+  if (!preview) {
+    return c.json({ error: "Invalid AniList JSON payload" }, 400);
+  }
   const result = await importAnimeWatchlistEntries(preview.entries, user.userId);
   return c.json({ ...preview, imported: result.imported });
 });
