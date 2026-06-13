@@ -68,7 +68,7 @@ async function seed() {
     }
 
     console.log("Anime watchlist seeded.");
-  } catch (e) {
+  } catch {
     console.log("No anime watchlist file found, skipping.");
   }
 
@@ -94,7 +94,7 @@ async function seed() {
     }
 
     console.log("Manga watchlist seeded.");
-  } catch (e) {
+  } catch {
     console.log("No manga watchlist file found, skipping.");
   }
 

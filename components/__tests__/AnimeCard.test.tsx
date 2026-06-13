@@ -16,7 +16,7 @@ jest.mock("next/image", () => ({
   __esModule: true,
   default: (props: Record<string, unknown>) => {
     const { fill: _fill, priority: _priority, ...imgProps } = props;
-    // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
+    // test mock intentionally returns native img for AnimeCard (avoids next/image in RTL)
     return <img {...imgProps} />;
   },
 }));

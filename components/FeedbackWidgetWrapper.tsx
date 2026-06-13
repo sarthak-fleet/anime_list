@@ -3,7 +3,7 @@
 import "@/lib/feedback-widget/index.css";
 import { useAuth } from "@/lib/auth";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-require-imports
 const mod = require("@/lib/feedback-widget/index.mjs") as any;
 const FeedbackWidget = mod.FeedbackWidget as React.FC<{
   projectId: string;
