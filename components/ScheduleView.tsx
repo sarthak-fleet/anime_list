@@ -262,8 +262,8 @@ export default function ScheduleView() {
 
   const doneMutation = useMutation({
     mutationFn: async (malId: string) => {
-      await removeFromSchedule([Number(malId)]);
       await addToWatchlist([Number(malId)], "Done");
+      await removeFromSchedule([Number(malId)]);
     },
     onMutate: async (malId) => {
       await queryClient.cancelQueries({ queryKey: SCHEDULE_KEY });
