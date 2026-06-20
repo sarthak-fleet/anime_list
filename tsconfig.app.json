@@ -27,7 +27,6 @@
     "src/router.tsx",
     "src/RootLayout.tsx",
     "src/AppProvidersLayout.tsx",
-    "src/data/**/*.json",
     "src/pages/**/*.tsx",
     "components/**/*.ts",
     "components/**/*.tsx",
