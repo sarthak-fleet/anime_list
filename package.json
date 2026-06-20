@@ -25,7 +25,10 @@
     "db:update:manga:full": "tsx src/scripts/updateMangaData.ts -- --full",
     "db:quarterly-sync": "tsx src/scripts/runQuarterlyAnimeSync.ts",
     "deploy:worker": "wrangler deploy src/worker.ts --config wrangler.cron.toml",
-    "prepare": "husky"
+    "prepare": "husky",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
+    "check": "biome check ."
   },
   "keywords": [],
   "author": "",
@@ -58,9 +61,6 @@
     "@cloudflare/workers-types": "4.20260424.1",
     "@eslint/js": "10.0.1",
     "@playwright/test": "1.59.1",
-    "@saas-maker/prettier-config": "1.0.0",
-    "@saas-maker/test-config": "^0.2.0",
-    "@saas-maker/tsconfig": "1.0.0",
     "@tailwindcss/vite": "4.2.4",
     "@testing-library/jest-dom": "6.9.1",
     "@testing-library/react": "16.3.2",
@@ -80,7 +80,7 @@
     "typescript-eslint": "8.59.0",
     "vite": "8.0.10",
     "vitest": "4.1.5",
-    "wrangler": "4.85.0"
-  },
-  "prettier": "@saas-maker/prettier-config"
+    "wrangler": "4.85.0",
+    "@biomejs/biome": "2.5.0"
+  }
 }

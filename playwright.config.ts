@@ -1,21 +1,23 @@
-import { devices } from '@playwright/test';
-import { definePlaywrightConfig } from '@saas-maker/test-config/playwright';
+import { defineConfig, devices } from '@playwright/test';
 
-/**
- * Desktop baseline + a mobile-viewport project (iPhone 13 = 390px, the Wave 1
- * mobile target) so mobile-layout regressions are caught.
- *
- * Run only the mobile project:  pnpm exec playwright test --project=mobile
- */
-export default definePlaywrightConfig({
+// Plain Playwright config (formerly @saas-maker/test-config/playwright factory, inlined).
+const ci = Boolean(process.env.CI);
+
+export default defineConfig({
   testDir: './e2e',
-  baseURL: process.env["E2E_BASE_URL"] || 'https://anime-list-9lk.pages.dev',
-  viewportMatrix: false,
-  smoke: false,
-  extend: {
-    projects: [
-      { name: 'desktop', use: { ...devices['Desktop Chrome'] } },
-      { name: 'mobile', use: { ...devices['iPhone 13'] } },
-    ],
+  timeout: 30_000,
+  expect: { timeout: 5_000 },
+  fullyParallel: true,
+  forbidOnly: ci,
+  retries: ci ? 2 : 0,
+  reporter: ci ? [['list'], ['html', { open: 'never' }]] : 'list',
+  use: {
+    baseURL: process.env['E2E_BASE_URL'] || 'https://anime-list-9lk.pages.dev',
+    trace: 'on-first-retry',
+    screenshot: 'only-on-failure',
   },
+  projects: [
+    { name: 'desktop', use: { ...devices['Desktop Chrome'] } },
+    { name: 'mobile', use: { ...devices['iPhone 13'] } },
+  ],
 });
