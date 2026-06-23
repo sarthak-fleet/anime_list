@@ -1,5 +1,5 @@
-import { getMangaCatalogDb } from "./client";
-import { MangaItem } from "../types/manga";
+import { getMangaCatalogDb } from './client';
+import type { MangaItem } from '../types/manga';
 
 const mapMangaRow = (row: Record<string, unknown>): MangaItem => ({
   mal_id: row.mal_id as number,
@@ -12,7 +12,7 @@ const mapMangaRow = (row: Record<string, unknown>): MangaItem => ({
   published: row.published_from
     ? {
         from: row.published_from as string,
-        to: (row.published_to as string) || "",
+        to: (row.published_to as string) || '',
       }
     : undefined,
   score: (row.score as number) || undefined,
@@ -27,15 +27,13 @@ const mapMangaRow = (row: Record<string, unknown>): MangaItem => ({
   image: (row.image as string) || undefined,
   has_colored: row.has_colored ? Boolean(row.has_colored) : undefined,
   is_completed: row.is_completed ? Boolean(row.is_completed) : undefined,
-  available_in_english: row.available_in_english
-    ? Boolean(row.available_in_english)
-    : undefined,
+  available_in_english: row.available_in_english ? Boolean(row.available_in_english) : undefined,
   available_languages: row.available_languages
     ? (JSON.parse(row.available_languages as string) as string[])
     : undefined,
-  genres: JSON.parse((row.genres as string) || "{}"),
-  themes: JSON.parse((row.themes as string) || "{}"),
-  demographics: JSON.parse((row.demographics as string) || "{}"),
+  genres: JSON.parse((row.genres as string) || '{}'),
+  themes: JSON.parse((row.themes as string) || '{}'),
+  demographics: JSON.parse((row.demographics as string) || '{}'),
 });
 
 const UPSERT_BATCH_SIZE = 100;
@@ -111,7 +109,7 @@ async function writeMangaBatches(mangaList: MangaItem[]): Promise<void> {
   const db = getMangaCatalogDb();
   for (let i = 0; i < mangaList.length; i += UPSERT_BATCH_SIZE) {
     const batch = mangaList.slice(i, i + UPSERT_BATCH_SIZE);
-    await db.batch(batch.map(buildMangaUpsertStatement), "write");
+    await db.batch(batch.map(buildMangaUpsertStatement), 'write');
   }
 }
 
@@ -122,16 +120,14 @@ export async function upsertMangaBatch(mangaList: MangaItem[]): Promise<void> {
 
 export async function getAllManga(): Promise<MangaItem[]> {
   const db = getMangaCatalogDb();
-  const result = await db.execute("SELECT * FROM manga_data");
-  return result.rows.map((row) =>
-    mapMangaRow(row as unknown as Record<string, unknown>),
-  );
+  const result = await db.execute('SELECT * FROM manga_data');
+  return result.rows.map((row) => mapMangaRow(row as unknown as Record<string, unknown>));
 }
 
 export async function getMangaByMalId(malId: number): Promise<MangaItem | null> {
   const db = getMangaCatalogDb();
   const result = await db.execute({
-    sql: "SELECT * FROM manga_data WHERE mal_id = ? LIMIT 1",
+    sql: 'SELECT * FROM manga_data WHERE mal_id = ? LIMIT 1',
     args: [malId],
   });
   if (result.rows.length === 0) return null;
@@ -140,14 +136,12 @@ export async function getMangaByMalId(malId: number): Promise<MangaItem | null> 
 
 export async function getMangaCount(): Promise<number> {
   const db = getMangaCatalogDb();
-  const result = await db.execute("SELECT COUNT(*) as count FROM manga_data");
+  const result = await db.execute('SELECT COUNT(*) as count FROM manga_data');
   return result.rows[0].count as number;
 }
 
 export async function getLastMangaDataUpdate(): Promise<string | null> {
   const db = getMangaCatalogDb();
-  const result = await db.execute(
-    "SELECT MAX(updated_at) as last_updated FROM manga_data",
-  );
+  const result = await db.execute('SELECT MAX(updated_at) as last_updated FROM manga_data');
   return (result.rows[0]?.last_updated as string) || null;
 }

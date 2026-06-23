@@ -1,16 +1,16 @@
-import { getMangaCatalogDb } from "./client";
+import { getMangaCatalogDb } from './client';
 
 export async function migrateMangaCatalogTable(): Promise<void> {
   const db = getMangaCatalogDb();
   const tables = await db.execute(
-    "SELECT name FROM sqlite_master WHERE type='table' AND name='manga_data'",
+    "SELECT name FROM sqlite_master WHERE type='table' AND name='manga_data'"
   );
 
   if (tables.rows.length > 0) {
     return;
   }
 
-  console.log("Creating manga_data table in manga catalog database...");
+  console.log('Creating manga_data table in manga catalog database...');
 
   await db.execute(`
     CREATE TABLE manga_data (
@@ -46,8 +46,8 @@ export async function migrateMangaCatalogTable(): Promise<void> {
   `);
 
   await db.batch([
-    "CREATE INDEX IF NOT EXISTS idx_manga_data_score ON manga_data(score)",
-    "CREATE INDEX IF NOT EXISTS idx_manga_data_members ON manga_data(members)",
-    "CREATE INDEX IF NOT EXISTS idx_manga_data_year ON manga_data(year)",
+    'CREATE INDEX IF NOT EXISTS idx_manga_data_score ON manga_data(score)',
+    'CREATE INDEX IF NOT EXISTS idx_manga_data_members ON manga_data(members)',
+    'CREATE INDEX IF NOT EXISTS idx_manga_data_year ON manga_data(year)',
   ]);
 }

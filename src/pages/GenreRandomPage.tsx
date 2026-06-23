@@ -1,14 +1,14 @@
-import { useEffect, useState } from "react";
-import { useParams } from "@tanstack/react-router";
-import { getRandomAnimePick } from "@/lib/api";
+import { useEffect, useState } from 'react';
+import { useParams } from '@tanstack/react-router';
+import { getRandomAnimePick } from '@/lib/api';
 
 export default function GenreRandomPage() {
-  const { genre } = useParams({ from: "/app/genre/$genre" });
-  const [msg, setMsg] = useState("Picking a random anime in this genre…");
+  const { genre } = useParams({ from: '/app/genre/$genre' });
+  const [msg, setMsg] = useState('Picking a random anime in this genre…');
 
   useEffect(() => {
     if (!genre) {
-      setMsg("Missing genre.");
+      setMsg('Missing genre.');
       return;
     }
     let aborted = false;
@@ -24,7 +24,7 @@ export default function GenreRandomPage() {
         }
       })
       .catch(() => {
-        if (!aborted) setMsg("Could not reach the catalog. Try again.");
+        if (!aborted) setMsg('Could not reach the catalog. Try again.');
       });
     return () => {
       aborted = true;

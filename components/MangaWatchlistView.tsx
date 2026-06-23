@@ -1,21 +1,21 @@
-"use client";
+'use client';
 
-import { useEffect, useMemo, useState } from "react";
-import { Link } from "@tanstack/react-router";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ExternalLink } from "lucide-react";
-import type { EnrichedMangaWatchlistItem } from "@/lib/types";
+import { useEffect, useMemo, useState } from 'react';
+import { Link } from '@tanstack/react-router';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { ExternalLink } from 'lucide-react';
+import type { EnrichedMangaWatchlistItem } from '@/lib/types';
 import {
   addToMangaWatchlist,
   getEnrichedMangaWatchlist,
   getWatchlistTags,
   removeFromMangaWatchlist,
-} from "@/lib/api";
-import { useAuth } from "@/lib/auth";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { cn, getMangaDetailHref } from "@/lib/utils";
-import { resolveTagColor, toRgba } from "@/lib/watchStatus";
+} from '@/lib/api';
+import { useAuth } from '@/lib/auth';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { cn, getMangaDetailHref } from '@/lib/utils';
+import { resolveTagColor, toRgba } from '@/lib/watchStatus';
 
 function WatchlistSkeleton() {
   return (
@@ -36,35 +36,42 @@ function WatchlistSkeleton() {
 
 export default function MangaWatchlistView() {
   const { user, loading: authLoading } = useAuth();
-  const [activeTab, setActiveTab] = useState("");
+  const [activeTab, setActiveTab] = useState('');
   const queryClient = useQueryClient();
 
   const { data, isLoading, error, refetch, isFetching } = useQuery({
-    queryKey: ["manga", "watchlist", "enriched"],
+    queryKey: ['manga', 'watchlist', 'enriched'],
     queryFn: () => getEnrichedMangaWatchlist(),
     enabled: !!user,
   });
 
   const { data: tagsData } = useQuery({
-    queryKey: ["watchlist", "tags"],
+    queryKey: ['watchlist', 'tags'],
     queryFn: () => getWatchlistTags(),
     enabled: !!user,
   });
 
   const statusMutation = useMutation({
-    mutationFn: ({ malId, status, tagColor }: { malId: string; status: string; tagColor?: string }) =>
-      addToMangaWatchlist([Number(malId)], status, tagColor),
+    mutationFn: ({
+      malId,
+      status,
+      tagColor,
+    }: {
+      malId: string;
+      status: string;
+      tagColor?: string;
+    }) => addToMangaWatchlist([Number(malId)], status, tagColor),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["manga", "watchlist"] });
-      queryClient.invalidateQueries({ queryKey: ["manga", "watchlist", "enriched"] });
+      queryClient.invalidateQueries({ queryKey: ['manga', 'watchlist'] });
+      queryClient.invalidateQueries({ queryKey: ['manga', 'watchlist', 'enriched'] });
     },
   });
 
   const removeMutation = useMutation({
     mutationFn: (malId: string) => removeFromMangaWatchlist([Number(malId)]),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["manga", "watchlist"] });
-      queryClient.invalidateQueries({ queryKey: ["manga", "watchlist", "enriched"] });
+      queryClient.invalidateQueries({ queryKey: ['manga', 'watchlist'] });
+      queryClient.invalidateQueries({ queryKey: ['manga', 'watchlist', 'enriched'] });
     },
   });
 
@@ -72,12 +79,12 @@ export default function MangaWatchlistView() {
   const tags = tagsData?.tags ?? [];
   const tagColorMap = useMemo(
     () => new Map(tags.map((tag) => [tag.tag, resolveTagColor(tag.tag, tag.color)])),
-    [tags],
+    [tags]
   );
 
   useEffect(() => {
     if (!tags.length) {
-      setActiveTab("");
+      setActiveTab('');
       return;
     }
     if (!activeTab || !tags.some((tag) => tag.tag === activeTab)) {
@@ -90,7 +97,9 @@ export default function MangaWatchlistView() {
   if (!user) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
-        <h3 className="text-lg font-medium text-foreground mb-1">Sign in to view your manga list</h3>
+        <h3 className="text-lg font-medium text-foreground mb-1">
+          Sign in to view your manga list
+        </h3>
         <p className="text-sm text-muted-foreground max-w-sm">
           Your reading list is personal and synced across devices
         </p>
@@ -110,15 +119,13 @@ export default function MangaWatchlistView() {
           disabled={isFetching}
           className="px-3 py-1.5 text-sm rounded border hover:opacity-80 disabled:opacity-50"
         >
-          {isFetching ? "Retrying…" : "Try again"}
+          {isFetching ? 'Retrying…' : 'Try again'}
         </button>
       </div>
     );
   }
 
-  const filtered = activeTab
-    ? items.filter((item) => item.watchStatus === activeTab)
-    : items;
+  const filtered = activeTab ? items.filter((item) => item.watchStatus === activeTab) : items;
 
   return (
     <div className="space-y-5">
@@ -138,8 +145,8 @@ export default function MangaWatchlistView() {
               key={tag.id}
               onClick={() => setActiveTab(tag.tag)}
               className={cn(
-                "inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border transition-all duration-200",
-                isActive ? "" : "text-muted-foreground hover:text-foreground",
+                'inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border transition-all duration-200',
+                isActive ? '' : 'text-muted-foreground hover:text-foreground'
               )}
               style={
                 isActive
@@ -160,18 +167,23 @@ export default function MangaWatchlistView() {
           );
         })}
         {tags.length === 0 && (
-          <span className="text-sm text-muted-foreground">Add manga from Discover to build your list</span>
+          <span className="text-sm text-muted-foreground">
+            Add manga from Discover to build your list
+          </span>
         )}
       </div>
 
       {filtered.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
-          {activeTab ? `No manga with tag "${activeTab}"` : "No manga in your list yet"}
+          {activeTab ? `No manga with tag "${activeTab}"` : 'No manga in your list yet'}
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           {filtered.map((item) => (
-            <Card key={item.mal_id} className="overflow-hidden flex flex-row p-0 hover:border-primary/30 transition-colors">
+            <Card
+              key={item.mal_id}
+              className="overflow-hidden flex flex-row p-0 hover:border-primary/30 transition-colors"
+            >
               {item.image ? (
                 <Link
                   to={getMangaDetailHref(item.mal_id)}

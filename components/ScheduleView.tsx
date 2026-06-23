@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useCallback, useMemo, useRef, useState } from "react";
-import { Link } from "@tanstack/react-router";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ExternalLink } from "lucide-react";
-import type { EnrichedWatchlistItem, ScheduleItem, ScheduleTimelineDay } from "@/lib/types";
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { Link } from '@tanstack/react-router';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { ExternalLink } from 'lucide-react';
+import type { EnrichedWatchlistItem, ScheduleItem, ScheduleTimelineDay } from '@/lib/types';
 import {
   addToSchedule,
   addToWatchlist,
@@ -13,15 +13,18 @@ import {
   removeFromSchedule,
   updateScheduleItem,
   reorderSchedule,
-} from "@/lib/api";
-import { useAuth } from "@/lib/auth";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { cn, getAnimeDetailHref } from "@/lib/utils";
+} from '@/lib/api';
+import { useAuth } from '@/lib/auth';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { cn, getAnimeDetailHref } from '@/lib/utils';
 
 // ── Client-side timeline computation (uses local timezone) ─────────────
 
-function buildTimeline(items: ScheduleItem[], epd: number): {
+function buildTimeline(
+  items: ScheduleItem[],
+  epd: number
+): {
   timeline: ScheduleTimelineDay[];
   stats: { total_episodes: number; total_days: number; start_date: string; finish_date: string };
 } {
@@ -37,8 +40,8 @@ function buildTimeline(items: ScheduleItem[], epd: number): {
     const d = new Date(today);
     d.setDate(d.getDate() + day);
     const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const dd = String(d.getDate()).padStart(2, "0");
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
     return `${yyyy}-${mm}-${dd}`;
   };
 
@@ -87,7 +90,12 @@ function buildTimeline(items: ScheduleItem[], epd: number): {
 
   return {
     timeline,
-    stats: { total_episodes: totalEpisodes, total_days: totalDays, start_date: startDate, finish_date: finishDate },
+    stats: {
+      total_episodes: totalEpisodes,
+      total_days: totalDays,
+      start_date: startDate,
+      finish_date: finishDate,
+    },
   };
 }
 
@@ -111,23 +119,23 @@ function ScheduleSkeleton() {
 }
 
 function formatDate(dateStr: string): string {
-  const [y, m, d] = dateStr.split("-").map(Number);
+  const [y, m, d] = dateStr.split('-').map(Number);
   const date = new Date(y, m - 1, d);
-  return date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+  return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 }
 
 function DayLabel({ day, date }: { day: number; date: string }) {
   const todayStr = (() => {
     const d = new Date();
     const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const dd = String(d.getDate()).padStart(2, "0");
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
     return `${yyyy}-${mm}-${dd}`;
   })();
   const isToday = date === todayStr;
   return (
-    <span className={cn("text-xs font-medium", isToday ? "text-primary" : "text-muted-foreground")}>
-      {isToday ? "Today" : `Day ${day + 1}`} &middot; {formatDate(date)}
+    <span className={cn('text-xs font-medium', isToday ? 'text-primary' : 'text-muted-foreground')}>
+      {isToday ? 'Today' : `Day ${day + 1}`} &middot; {formatDate(date)}
     </span>
   );
 }
@@ -139,8 +147,8 @@ export default function ScheduleView() {
   const [showPicker, setShowPicker] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [epd, setEpd] = useState(() => {
-    if (typeof window === "undefined") return 3;
-    const saved = localStorage.getItem("mal_schedule_epd");
+    if (typeof window === 'undefined') return 3;
+    const saved = localStorage.getItem('mal_schedule_epd');
     return saved ? Math.max(1, Number(saved) || 3) : 3;
   });
   const queryClient = useQueryClient();
@@ -148,7 +156,7 @@ export default function ScheduleView() {
   const updateEpd = (val: number) => {
     const clamped = Math.max(1, Math.min(100, val));
     setEpd(clamped);
-    localStorage.setItem("mal_schedule_epd", String(clamped));
+    localStorage.setItem('mal_schedule_epd', String(clamped));
   };
 
   // Drag state
@@ -157,29 +165,26 @@ export default function ScheduleView() {
 
   // Debounce watched updates -- optimistic UI is instant, API call is debounced
   const watchedTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
-  const debouncedWatchedUpdate = useCallback(
-    (malId: string, watched: number) => {
-      const existing = watchedTimers.current.get(malId);
-      if (existing) clearTimeout(existing);
-      watchedTimers.current.set(
-        malId,
-        setTimeout(() => {
-          watchedTimers.current.delete(malId);
-          updateScheduleItem(malId, { episodes_watched: watched });
-        }, 500),
-      );
-    },
-    [],
-  );
+  const debouncedWatchedUpdate = useCallback((malId: string, watched: number) => {
+    const existing = watchedTimers.current.get(malId);
+    if (existing) clearTimeout(existing);
+    watchedTimers.current.set(
+      malId,
+      setTimeout(() => {
+        watchedTimers.current.delete(malId);
+        updateScheduleItem(malId, { episodes_watched: watched });
+      }, 500)
+    );
+  }, []);
 
   const { data, isLoading, error, refetch, isFetching } = useQuery({
-    queryKey: ["schedule", "timeline"],
+    queryKey: ['schedule', 'timeline'],
     queryFn: () => getScheduleTimeline(),
     enabled: !!user,
   });
 
   const { data: watchlistData } = useQuery({
-    queryKey: ["watchlist", "enriched"],
+    queryKey: ['watchlist', 'enriched'],
     queryFn: () => getEnrichedWatchlist(),
     enabled: !!user && showPicker,
   });
@@ -187,13 +192,13 @@ export default function ScheduleView() {
   const addMutation = useMutation({
     mutationFn: (malIds: number[]) => addToSchedule(malIds),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["schedule"] });
+      queryClient.invalidateQueries({ queryKey: ['schedule'] });
       setSelectedIds(new Set());
       setShowPicker(false);
     },
   });
 
-  const SCHEDULE_KEY = ["schedule", "timeline"];
+  const SCHEDULE_KEY = ['schedule', 'timeline'];
 
   const setWatched = useCallback(
     (malId: string, watched: number) => {
@@ -203,14 +208,14 @@ export default function ScheduleView() {
         return {
           ...old,
           items: old.items.map((i: ScheduleItem) =>
-            i.mal_id === malId ? { ...i, episodes_watched: watched } : i,
+            i.mal_id === malId ? { ...i, episodes_watched: watched } : i
           ),
         };
       });
       // Debounced: sync to server
       debouncedWatchedUpdate(malId, watched);
     },
-    [queryClient, debouncedWatchedUpdate, data],
+    [queryClient, debouncedWatchedUpdate, SCHEDULE_KEY]
   );
 
   const removeMutation = useMutation({
@@ -261,7 +266,7 @@ export default function ScheduleView() {
 
   const doneMutation = useMutation({
     mutationFn: async (malId: string) => {
-      await addToWatchlist([Number(malId)], "Done");
+      await addToWatchlist([Number(malId)], 'Done');
       await removeFromSchedule([Number(malId)]);
     },
     onMutate: async (malId) => {
@@ -278,8 +283,8 @@ export default function ScheduleView() {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: SCHEDULE_KEY });
-      queryClient.invalidateQueries({ queryKey: ["watchlist"] });
-      queryClient.invalidateQueries({ queryKey: ["watchlist", "enriched"] });
+      queryClient.invalidateQueries({ queryKey: ['watchlist'] });
+      queryClient.invalidateQueries({ queryKey: ['watchlist', 'enriched'] });
     },
   });
 
@@ -290,7 +295,7 @@ export default function ScheduleView() {
 
   const scheduledIds = new Set(items.map((i) => i.mal_id));
   const availableWatchlist: EnrichedWatchlistItem[] = (watchlistData?.items ?? []).filter(
-    (item) => !scheduledIds.has(item.mal_id),
+    (item) => !scheduledIds.has(item.mal_id)
   );
 
   // ── Drag handlers ───────────────────────────────────────────────────
@@ -332,8 +337,18 @@ export default function ScheduleView() {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
-          <svg className="h-8 w-8 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+          <svg
+            className="h-8 w-8 text-muted-foreground"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={1.5}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
+            />
           </svg>
         </div>
         <h3 className="text-lg font-medium text-foreground mb-1">Sign in to plan your schedule</h3>
@@ -349,15 +364,14 @@ export default function ScheduleView() {
     return (
       <div className="flex flex-col items-start gap-3">
         <p className="text-destructive text-sm">
-          We couldn&apos;t load your schedule. Check your connection and try
-          again.
+          We couldn&apos;t load your schedule. Check your connection and try again.
         </p>
         <button
           onClick={() => refetch()}
           disabled={isFetching}
           className="px-3 py-1.5 text-sm rounded border hover:opacity-80 disabled:opacity-50"
         >
-          {isFetching ? "Retrying…" : "Try again"}
+          {isFetching ? 'Retrying…' : 'Try again'}
         </button>
       </div>
     );
@@ -404,7 +418,7 @@ export default function ScheduleView() {
           onClick={() => setShowPicker((prev) => !prev)}
           className="h-8 rounded-md px-3 text-xs bg-primary text-primary-foreground hover:bg-primary/90"
         >
-          {showPicker ? "Cancel" : "+ Add from Watchlist"}
+          {showPicker ? 'Cancel' : '+ Add from Watchlist'}
         </button>
       </div>
 
@@ -420,13 +434,13 @@ export default function ScheduleView() {
               disabled={selectedIds.size === 0 || addMutation.isPending}
               className="h-7 rounded-md px-3 text-xs bg-primary text-primary-foreground disabled:opacity-50"
             >
-              Add {selectedIds.size > 0 ? `(${selectedIds.size})` : "selected"}
+              Add {selectedIds.size > 0 ? `(${selectedIds.size})` : 'selected'}
             </button>
           </div>
 
           {availableWatchlist.length === 0 ? (
             <p className="text-xs text-muted-foreground py-2">
-              {watchlistData ? "All watchlist anime are already scheduled" : "Loading watchlist..."}
+              {watchlistData ? 'All watchlist anime are already scheduled' : 'Loading watchlist...'}
             </p>
           ) : (
             <div className="max-h-64 overflow-y-auto space-y-1">
@@ -434,8 +448,8 @@ export default function ScheduleView() {
                 <label
                   key={item.mal_id}
                   className={cn(
-                    "flex items-center gap-2 p-2 rounded-lg cursor-pointer hover:bg-accent transition-colors",
-                    selectedIds.has(item.mal_id) && "bg-primary/10",
+                    'flex items-center gap-2 p-2 rounded-lg cursor-pointer hover:bg-accent transition-colors',
+                    selectedIds.has(item.mal_id) && 'bg-primary/10'
                   )}
                 >
                   <input
@@ -452,13 +466,21 @@ export default function ScheduleView() {
                     className="rounded"
                   />
                   {item.image && (
-                    <img src={item.image} alt="" width={28} height={40} className="rounded object-cover" />
+                    <img
+                      src={item.image}
+                      alt=""
+                      width={28}
+                      height={40}
+                      className="rounded object-cover"
+                    />
                   )}
                   <span className="text-sm truncate flex-1">{item.title}</span>
                   <span className="text-xs text-muted-foreground shrink-0">
-                    {item.episodes ? `${item.episodes} eps` : "? eps"}
+                    {item.episodes ? `${item.episodes} eps` : '? eps'}
                   </span>
-                  <Badge variant="secondary" className="text-[10px] shrink-0">{item.watchStatus}</Badge>
+                  <Badge variant="secondary" className="text-[10px] shrink-0">
+                    {item.watchStatus}
+                  </Badge>
                 </label>
               ))}
             </div>
@@ -483,10 +505,10 @@ export default function ScheduleView() {
               onDrop={() => handleDrop(index)}
               onDragEnd={handleDragEnd}
               className={cn(
-                "overflow-hidden flex flex-row p-0 transition-all cursor-grab active:cursor-grabbing",
+                'overflow-hidden flex flex-row p-0 transition-all cursor-grab active:cursor-grabbing',
                 dragOverIndex === index
-                  ? "border-primary ring-1 ring-primary/30"
-                  : "hover:border-primary/30",
+                  ? 'border-primary ring-1 ring-primary/30'
+                  : 'hover:border-primary/30'
               )}
             >
               {item.image ? (
@@ -494,7 +516,11 @@ export default function ScheduleView() {
                   to={getAnimeDetailHref(item.mal_id)}
                   className="relative block w-[60px] min-h-[80px] shrink-0"
                 >
-                  <img src={item.image} alt={item.title} className="absolute inset-0 h-full w-full object-cover" />
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
                 </Link>
               ) : (
                 <div className="w-[60px] min-h-[80px] shrink-0 bg-muted" />
@@ -542,7 +568,10 @@ export default function ScheduleView() {
                           max={item.episodes}
                           value={item.episodes_watched ?? 0}
                           onChange={(e) => {
-                            const val = Math.max(0, Math.min(item.episodes ?? 0, Number(e.target.value) || 0));
+                            const val = Math.max(
+                              0,
+                              Math.min(item.episodes ?? 0, Number(e.target.value) || 0)
+                            );
                             setWatched(item.mal_id, val);
                           }}
                           onClick={(e) => e.stopPropagation()}
@@ -554,7 +583,8 @@ export default function ScheduleView() {
                     {item.type && <span>{item.type}</span>}
                     {item.episodes != null && (
                       <span className="text-primary">
-                        {Math.ceil(Math.max(0, item.episodes - (item.episodes_watched ?? 0)) / epd)} days left
+                        {Math.ceil(Math.max(0, item.episodes - (item.episodes_watched ?? 0)) / epd)}{' '}
+                        days left
                       </span>
                     )}
                   </div>
@@ -597,14 +627,20 @@ export default function ScheduleView() {
                     <div
                       key={`${entry.mal_id}-${i}`}
                       className={cn(
-                        "flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm",
+                        'flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm',
                         entry.is_final_day
-                          ? "bg-primary/10 border border-primary/20"
-                          : "bg-muted/50",
+                          ? 'bg-primary/10 border border-primary/20'
+                          : 'bg-muted/50'
                       )}
                     >
                       {entry.image && (
-                        <img src={entry.image} alt="" width={20} height={28} className="rounded object-cover shrink-0" />
+                        <img
+                          src={entry.image}
+                          alt=""
+                          width={20}
+                          height={28}
+                          className="rounded object-cover shrink-0"
+                        />
                       )}
                       <Link
                         to={getAnimeDetailHref(entry.mal_id)}
@@ -612,7 +648,10 @@ export default function ScheduleView() {
                       >
                         {entry.title}
                       </Link>
-                      <Badge variant={entry.is_final_day ? "default" : "secondary"} className="text-[10px] shrink-0">
+                      <Badge
+                        variant={entry.is_final_day ? 'default' : 'secondary'}
+                        className="text-[10px] shrink-0"
+                      >
                         {entry.episode_range[0] === entry.episode_range[1]
                           ? `Ep ${entry.episode_range[0]}`
                           : `Ep ${entry.episode_range[0]}-${entry.episode_range[1]}`}

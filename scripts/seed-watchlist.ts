@@ -1,14 +1,14 @@
-import "dotenv/config";
-import { readFileSync } from "fs";
-import { getDb } from "../src/db/client";
-import { initWatchlistTables } from "../src/db/watchlist";
-import { initUsersTable } from "../src/db/users";
+import 'dotenv/config';
+import { readFileSync } from 'node:fs';
+import { getDb } from '../src/db/client';
+import { initWatchlistTables } from '../src/db/watchlist';
+import { initUsersTable } from '../src/db/users';
 
 async function resolveUserId(db: ReturnType<typeof getDb>, emailOrId: string): Promise<string> {
   // If it looks like an email, look up or create the user
-  if (emailOrId.includes("@")) {
+  if (emailOrId.includes('@')) {
     const existing = await db.execute({
-      sql: "SELECT id FROM users WHERE email = ?",
+      sql: 'SELECT id FROM users WHERE email = ?',
       args: [emailOrId],
     });
     if (existing.rows.length > 0) {
@@ -18,8 +18,8 @@ async function resolveUserId(db: ReturnType<typeof getDb>, emailOrId: string): P
     // Create a placeholder user (will be linked to Google on first login)
     const id = crypto.randomUUID();
     await db.execute({
-      sql: "INSERT INTO users (id, google_id, email, name) VALUES (?, ?, ?, ?)",
-      args: [id, `pending_${id}`, emailOrId, emailOrId.split("@")[0]],
+      sql: 'INSERT INTO users (id, google_id, email, name) VALUES (?, ?, ?, ?)',
+      args: [id, `pending_${id}`, emailOrId, emailOrId.split('@')[0]],
     });
     console.log(`Created placeholder user for ${emailOrId}: ${id}`);
     return id;
@@ -32,13 +32,13 @@ async function seed() {
   await initWatchlistTables();
   const db = getDb();
 
-  const input = process.argv[2] || "default";
+  const input = process.argv[2] || 'default';
   const userId = await resolveUserId(db, input);
   console.log(`Seeding watchlist for user_id: ${userId}`);
 
   // Seed anime watchlist
   try {
-    const animeData = JSON.parse(readFileSync("user_watchedlist_data.json", "utf-8"));
+    const animeData = JSON.parse(readFileSync('user_watchedlist_data.json', 'utf-8'));
     const entries = Object.values(animeData.anime) as Array<{
       id: string;
       status: string;
@@ -67,14 +67,14 @@ async function seed() {
       console.log(`  ${Math.min(i + 100, entries.length)}/${entries.length}`);
     }
 
-    console.log("Anime watchlist seeded.");
+    console.log('Anime watchlist seeded.');
   } catch {
-    console.log("No anime watchlist file found, skipping.");
+    console.log('No anime watchlist file found, skipping.');
   }
 
   // Seed manga watchlist
   try {
-    const mangaData = JSON.parse(readFileSync("user_manga_watchedlist_data.json", "utf-8"));
+    const mangaData = JSON.parse(readFileSync('user_manga_watchedlist_data.json', 'utf-8'));
     const entries = Object.values(mangaData.manga) as Array<{
       id: string;
       status: string;
@@ -93,12 +93,12 @@ async function seed() {
       console.log(`  ${Math.min(i + 100, entries.length)}/${entries.length}`);
     }
 
-    console.log("Manga watchlist seeded.");
+    console.log('Manga watchlist seeded.');
   } catch {
-    console.log("No manga watchlist file found, skipping.");
+    console.log('No manga watchlist file found, skipping.');
   }
 
-  console.log("Done!");
+  console.log('Done!');
 }
 
 seed().catch(console.error);

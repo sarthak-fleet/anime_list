@@ -1,5 +1,5 @@
-import { AnimeItem } from "../types/anime";
-import { getAllAnime } from "../db/animeData";
+import type { AnimeItem } from '../types/anime';
+import { getAllAnime } from '../db/animeData';
 
 class AnimeStore {
   private animeList: AnimeItem[] = [];
@@ -28,7 +28,7 @@ class AnimeStore {
       animeData = await getAllAnime();
     }
     if (!animeData || animeData.length === 0) {
-      return console.error("No anime data found in database");
+      return console.error('No anime data found in database');
     }
     console.log(`Loaded ${animeData.length} anime from database`);
     this.animeList = animeData;
@@ -44,7 +44,7 @@ class AnimeStore {
     // share a single Turso scan instead of stampeding it.
     if (isEmpty) {
       if (!this.coldLoadPromise) {
-        console.log("Cache empty, loading from database...");
+        console.log('Cache empty, loading from database...');
         this.coldLoadPromise = (async () => {
           try {
             await this.setAnimeList();
@@ -59,7 +59,7 @@ class AnimeStore {
 
     // If cache is stale, refresh in background (non-blocking)
     if (isExpired && !this.isRefreshing) {
-      console.log("Cache stale, refreshing in background...");
+      console.log('Cache stale, refreshing in background...');
       this.isRefreshing = true;
       this.refreshWithRetry();
     }
@@ -71,14 +71,14 @@ class AnimeStore {
   private async refreshWithRetry(attempt = 1, maxAttempts = 3): Promise<void> {
     try {
       await this.setAnimeList();
-      console.log("✓ Background cache refresh complete");
+      console.log('✓ Background cache refresh complete');
     } catch (err) {
       if (attempt < maxAttempts) {
         console.warn(`Cache refresh attempt ${attempt}/${maxAttempts} failed, retrying in 30s...`);
         setTimeout(() => this.refreshWithRetry(attempt + 1, maxAttempts), 30000);
         return;
       }
-      console.error("✗ Background cache refresh failed after all retries:", err);
+      console.error('✗ Background cache refresh failed after all retries:', err);
     } finally {
       this.isRefreshing = false;
     }

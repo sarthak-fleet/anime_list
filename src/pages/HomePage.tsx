@@ -1,41 +1,41 @@
-import { Link } from "@tanstack/react-router";
-import { SITE_NAME } from "@/lib/brand";
+import { Link } from '@tanstack/react-router';
+import { SITE_NAME } from '@/lib/brand';
 
 const FEATURES = [
   {
-    title: "Filter across every dimension",
-    body: "Score, type, genre, theme, year, airing status, member count — stack operators (includes all/any, excludes, numeric comparisons) until the results match what you want. Filter state lives in the URL, so any query is shareable.",
+    title: 'Filter across every dimension',
+    body: 'Score, type, genre, theme, year, airing status, member count — stack operators (includes all/any, excludes, numeric comparisons) until the results match what you want. Filter state lives in the URL, so any query is shareable.',
   },
   {
     title: "A watchlist that's yours",
-    body: "Track titles as Watching, Completed, Deferred, Avoiding, or BRR. Private to your Google account, synced across sessions, and never sold.",
+    body: 'Track titles as Watching, Completed, Deferred, Avoiding, or BRR. Private to your Google account, synced across sessions, and never sold.',
   },
   {
-    title: "Ranking that surfaces hidden gems",
-    body: "A log-scale popularity formula keeps mega-popular titles from burying everything else, so quality scores from smaller fandoms still get a fair shot.",
+    title: 'Ranking that surfaces hidden gems',
+    body: 'A log-scale popularity formula keeps mega-popular titles from burying everything else, so quality scores from smaller fandoms still get a fair shot.',
   },
 ];
 
 const FAQ = [
   {
     q: `Where does the data come from?`,
-    a: "All catalog data comes from MyAnimeList via the public Jikan API. We are not affiliated with MyAnimeList.net.",
+    a: 'All catalog data comes from MyAnimeList via the public Jikan API. We are not affiliated with MyAnimeList.net.',
   },
   {
-    q: "How often is it updated?",
-    a: "A daily sync at midnight UTC refreshes the current and previous anime seasons plus the top manga pages. A quarterly job re-scores the full catalog.",
+    q: 'How often is it updated?',
+    a: 'A daily sync at midnight UTC refreshes the current and previous anime seasons plus the top manga pages. A quarterly job re-scores the full catalog.',
   },
   {
-    q: "Do I need an account?",
-    a: "No — search, stats, and the schedule work fully signed-out. Sign in with Google only if you want a personal watchlist.",
+    q: 'Do I need an account?',
+    a: 'No — search, stats, and the schedule work fully signed-out. Sign in with Google only if you want a personal watchlist.',
   },
   {
-    q: "How many titles does Shelf cover?",
-    a: "Roughly 14,800+ anime and ~25,000 top manga titles — the slice of MyAnimeList that meets a quality bar on score, scored-by count, members, and year.",
+    q: 'How many titles does Shelf cover?',
+    a: 'Roughly 14,800+ anime and ~25,000 top manga titles — the slice of MyAnimeList that meets a quality bar on score, scored-by count, members, and year.',
   },
   {
-    q: "Is it free?",
-    a: "Yes. No paid tier, no ads. The point is to explore the catalog without anything in the way.",
+    q: 'Is it free?',
+    a: 'Yes. No paid tier, no ads. The point is to explore the catalog without anything in the way.',
   },
 ];
 
@@ -79,10 +79,7 @@ export default function HomePage() {
           </h2>
           <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
             {FEATURES.map((f) => (
-              <div
-                key={f.title}
-                className="rounded-xl border border-border bg-card p-6"
-              >
+              <div key={f.title} className="rounded-xl border border-border bg-card p-6">
                 <h3 className="text-base font-semibold text-foreground">{f.title}</h3>
                 <p className="mt-3 text-sm leading-6 text-muted-foreground">{f.body}</p>
               </div>
@@ -97,8 +94,8 @@ export default function HomePage() {
             Try it without signing up
           </h2>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-            Filter rows stack into a single query. Results, stats, and your watchlist all read
-            from the same URL state — every query is shareable.
+            Filter rows stack into a single query. Results, stats, and your watchlist all read from
+            the same URL state — every query is shareable.
           </p>
           <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
             <a
@@ -120,7 +117,9 @@ export default function HomePage() {
               className="rounded-xl border border-border bg-card p-5 text-left transition-colors hover:border-foreground/30"
             >
               <p className="text-sm font-medium text-foreground">Catalog stats</p>
-              <p className="mt-1 text-xs text-muted-foreground">14,800+ anime, score distribution</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                14,800+ anime, score distribution
+              </p>
             </Link>
           </div>
         </div>
@@ -133,7 +132,10 @@ export default function HomePage() {
           </h2>
           <div className="mt-6 divide-y divide-border rounded-xl border border-border bg-card">
             {FAQ.map((item) => (
-              <details key={item.q} className="group p-5 [&_summary::-webkit-details-marker]:hidden">
+              <details
+                key={item.q}
+                className="group p-5 [&_summary::-webkit-details-marker]:hidden"
+              >
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-medium text-foreground">
                   <span>{item.q}</span>
                   <span

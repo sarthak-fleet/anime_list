@@ -1,7 +1,7 @@
-import { Suspense } from "react";
-import FilterBuilder from "@/components/FilterBuilder";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { ResultsGridSkeleton } from "@/components/ResultsGrid";
+import { Suspense } from 'react';
+import FilterBuilder from '@/components/FilterBuilder';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { ResultsGridSkeleton } from '@/components/ResultsGrid';
 
 export default function SearchPage() {
   return (

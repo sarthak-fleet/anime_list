@@ -1,5 +1,5 @@
-import { MangaItem } from "../types/manga";
-import { getAllManga } from "../db/mangaData";
+import type { MangaItem } from '../types/manga';
+import { getAllManga } from '../db/mangaData';
 
 class MangaStore {
   private mangaList: MangaItem[] = [];
@@ -23,7 +23,7 @@ class MangaStore {
       mangaData = await getAllManga();
     }
     if (!mangaData || mangaData.length === 0) {
-      return console.error("No manga data found in catalog database");
+      return console.error('No manga data found in catalog database');
     }
     console.log(`Loaded ${mangaData.length} manga from catalog database`);
     this.mangaList = mangaData;
@@ -37,7 +37,7 @@ class MangaStore {
 
     if (isEmpty) {
       if (!this.coldLoadPromise) {
-        console.log("Manga cache empty, loading from catalog database...");
+        console.log('Manga cache empty, loading from catalog database...');
         this.coldLoadPromise = (async () => {
           try {
             await this.setMangaList();
@@ -61,19 +61,16 @@ class MangaStore {
   private async refreshWithRetry(attempt = 1, maxAttempts = 3): Promise<void> {
     try {
       await this.setMangaList();
-      console.log("✓ Manga background cache refresh complete");
+      console.log('✓ Manga background cache refresh complete');
     } catch (err) {
       if (attempt < maxAttempts) {
         console.warn(
-          `Manga cache refresh attempt ${attempt}/${maxAttempts} failed, retrying in 30s...`,
+          `Manga cache refresh attempt ${attempt}/${maxAttempts} failed, retrying in 30s...`
         );
         setTimeout(() => this.refreshWithRetry(attempt + 1, maxAttempts), 30000);
         return;
       }
-      console.error(
-        "✗ Manga background cache refresh failed after all retries:",
-        err,
-      );
+      console.error('✗ Manga background cache refresh failed after all retries:', err);
     } finally {
       this.isRefreshing = false;
     }

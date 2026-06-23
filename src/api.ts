@@ -1,12 +1,12 @@
-import axios from "axios";
-import { delay } from "./utils/file";
-import { API_CONFIG } from "./config";
-import { BaseAnimeItem, AnimeItem } from "./types/anime";
-import { BaseMangaItem } from "./types/manga";
-import { upsertAnimeBatch } from "./db/animeData";
-import { upsertMangaBatch } from "./db/mangaData";
-import { transformRawAnime, transformRawManga } from "./dataProcessor";
-import { MangaItem } from "./types/manga";
+import axios from 'axios';
+import { delay } from './utils/file';
+import { API_CONFIG } from './config';
+import type { BaseAnimeItem, AnimeItem } from './types/anime';
+import type { BaseMangaItem } from './types/manga';
+import { upsertAnimeBatch } from './db/animeData';
+import { upsertMangaBatch } from './db/mangaData';
+import { transformRawAnime, transformRawManga } from './dataProcessor';
+import type { MangaItem } from './types/manga';
 
 type RawAnimeItem = BaseAnimeItem & {
   genres?: Array<{ name: string }>;
@@ -32,16 +32,10 @@ interface ApiResponse<T> {
 const fetchFromApi = async <T>(url: string): Promise<T | null> => {
   try {
     // Run delay and API call in parallel for efficient rate limiting
-    const [response] = await Promise.all([
-      axios.get(url),
-      delay(API_CONFIG.rateLimit),
-    ]);
+    const [response] = await Promise.all([axios.get(url), delay(API_CONFIG.rateLimit)]);
     return response.data;
   } catch (error) {
-    console.error(
-      `Error fetching ${url}:`,
-      error instanceof Error ? error.message : String(error)
-    );
+    console.error(`Error fetching ${url}:`, error instanceof Error ? error.message : String(error));
     return null;
   }
 };
@@ -55,20 +49,17 @@ export const updateLatestTwoSeasonData = async (): Promise<void> => {
   const currentYear = now.getFullYear();
 
   const getSeason = (month: number): string => {
-    if (month >= 1 && month <= 3) return "winter";
-    else if (month >= 4 && month <= 6) return "spring";
-    else if (month >= 7 && month <= 9) return "summer";
-    else return "fall";
+    if (month >= 1 && month <= 3) return 'winter';
+    else if (month >= 4 && month <= 6) return 'spring';
+    else if (month >= 7 && month <= 9) return 'summer';
+    else return 'fall';
   };
 
-  const getPreviousSeason = (
-    season: string,
-    year: number
-  ): { season: string; year: number } => {
-    const seasons = ["winter", "spring", "summer", "fall"];
+  const getPreviousSeason = (season: string, year: number): { season: string; year: number } => {
+    const seasons = ['winter', 'spring', 'summer', 'fall'];
     const currentIndex = seasons.indexOf(season);
     if (currentIndex === 0) {
-      return { season: "fall", year: year - 1 };
+      return { season: 'fall', year: year - 1 };
     }
     return { season: seasons[currentIndex - 1], year };
   };
@@ -125,7 +116,7 @@ export const updateLatestTwoSeasonData = async (): Promise<void> => {
       }
     }
     if (summary.added.length === 0 && summary.updated.length === 0) {
-      console.log("No changes detected.");
+      console.log('No changes detected.');
     }
   }
 
@@ -134,7 +125,7 @@ export const updateLatestTwoSeasonData = async (): Promise<void> => {
 
 /** Refresh popular manga from Jikan top list into Turso (daily incremental sync). */
 export const updateLatestTopMangaData = async (
-  maxPages: number = API_CONFIG.mangaDailyUpdatePages,
+  maxPages: number = API_CONFIG.mangaDailyUpdatePages
 ): Promise<void> => {
   const p0 = performance.now();
   let pending: MangaItem[] = [];
@@ -195,9 +186,7 @@ export const updateLatestTopMangaData = async (
     if (newThisPage === 0) {
       stalePages++;
       if (stalePages >= MAX_STALE_PAGES) {
-        console.log(
-          `  stopping after ${MAX_STALE_PAGES} pages with no new titles (page ${page})`,
-        );
+        console.log(`  stopping after ${MAX_STALE_PAGES} pages with no new titles (page ${page})`);
         break;
       }
     } else {
@@ -205,9 +194,7 @@ export const updateLatestTopMangaData = async (
     }
 
     if (page % FLUSH_EVERY_PAGES === 0) {
-      console.log(
-        `  page ${page}/${maxPages} — ${uniqueCount} unique titles fetched`,
-      );
+      console.log(`  page ${page}/${maxPages} — ${uniqueCount} unique titles fetched`);
       await flushPending();
     }
 
@@ -217,12 +204,12 @@ export const updateLatestTopMangaData = async (
   await flushPending();
 
   if (totalSaved === 0) {
-    console.log("No manga titles fetched.");
+    console.log('No manga titles fetched.');
   } else {
     console.log(`Saved ${totalSaved} manga total.`);
   }
 
   console.log(
-    `\n✓ Manga update completed in ${((performance.now() - p0) / 1000).toFixed(1)}s (${uniqueCount} unique titles)`,
+    `\n✓ Manga update completed in ${((performance.now() - p0) / 1000).toFixed(1)}s (${uniqueCount} unique titles)`
   );
 };

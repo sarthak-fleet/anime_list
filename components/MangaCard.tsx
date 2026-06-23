@@ -1,19 +1,15 @@
-"use client";
+'use client';
 
-import { useMemo, useState } from "react";
-import { Link } from "@tanstack/react-router";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ExternalLink } from "lucide-react";
-import type { AnimeSummary } from "@/lib/types";
-import {
-  addToMangaWatchlist,
-  getMangaWatchlist,
-  getWatchlistTags,
-} from "@/lib/api";
-import { useAuth } from "@/lib/auth";
-import { Badge } from "@/components/ui/badge";
-import { DEFAULT_WATCH_TAGS, resolveTagColor } from "@/lib/watchStatus";
-import { getMangaDetailHref } from "@/lib/utils";
+import { useMemo, useState } from 'react';
+import { Link } from '@tanstack/react-router';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { ExternalLink } from 'lucide-react';
+import type { AnimeSummary } from '@/lib/types';
+import { addToMangaWatchlist, getMangaWatchlist, getWatchlistTags } from '@/lib/api';
+import { useAuth } from '@/lib/auth';
+import { Badge } from '@/components/ui/badge';
+import { DEFAULT_WATCH_TAGS, resolveTagColor } from '@/lib/watchStatus';
+import { getMangaDetailHref } from '@/lib/utils';
 
 export default function MangaCard({
   manga,
@@ -23,19 +19,19 @@ export default function MangaCard({
   priority?: boolean;
 }) {
   const [showMenu, setShowMenu] = useState(false);
-  const [customTag, setCustomTag] = useState("");
+  const [customTag, setCustomTag] = useState('');
   const [optimisticStatus, setOptimisticStatus] = useState<string | null>(null);
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
   const { data: watchlistData } = useQuery({
-    queryKey: ["manga", "watchlist"],
+    queryKey: ['manga', 'watchlist'],
     queryFn: () => getMangaWatchlist(),
     enabled: !!user,
   });
 
   const { data: tagsData } = useQuery({
-    queryKey: ["watchlist", "tags"],
+    queryKey: ['watchlist', 'tags'],
     queryFn: () => getWatchlistTags(),
     enabled: !!user,
   });
@@ -50,17 +46,12 @@ export default function MangaCard({
   }, [availableTags, currentStatus]);
 
   const mutation = useMutation({
-    mutationFn: ({
-      status,
-      tagColor,
-    }: {
-      status: string;
-      tagColor?: string;
-    }) => addToMangaWatchlist([manga.id], status, tagColor),
+    mutationFn: ({ status, tagColor }: { status: string; tagColor?: string }) =>
+      addToMangaWatchlist([manga.id], status, tagColor),
     onSuccess: () => {
-      setCustomTag("");
-      queryClient.invalidateQueries({ queryKey: ["manga", "watchlist"] });
-      queryClient.invalidateQueries({ queryKey: ["manga", "watchlist", "enriched"] });
+      setCustomTag('');
+      queryClient.invalidateQueries({ queryKey: ['manga', 'watchlist'] });
+      queryClient.invalidateQueries({ queryKey: ['manga', 'watchlist', 'enriched'] });
     },
   });
 
@@ -73,7 +64,7 @@ export default function MangaCard({
         onError: () => {
           setOptimisticStatus(previousStatus);
         },
-      },
+      }
     );
     setShowMenu(false);
   };
@@ -88,8 +79,8 @@ export default function MangaCard({
             <img
               src={manga.image}
               alt={displayTitle}
-              loading={priority ? "eager" : "lazy"}
-              fetchPriority={priority ? "high" : "auto"}
+              loading={priority ? 'eager' : 'lazy'}
+              fetchPriority={priority ? 'high' : 'auto'}
               className="absolute inset-0 h-full w-full object-cover"
             />
           ) : (
@@ -125,7 +116,7 @@ export default function MangaCard({
             onClick={() => setShowMenu((open) => !open)}
             className="text-[10px] font-bold uppercase tracking-widest text-primary hover:underline"
           >
-            {currentStatus ? `Tagged: ${currentStatus}` : "+ Reading list"}
+            {currentStatus ? `Tagged: ${currentStatus}` : '+ Reading list'}
           </button>
           {showMenu && (
             <div className="absolute z-20 mt-1 w-48 rounded border border-outline/20 bg-surface-container-high p-2 shadow-xl">

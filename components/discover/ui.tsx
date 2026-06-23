@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { Search, SlidersHorizontal, X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Search, SlidersHorizontal, X } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 
 export function DiscoverPanel({
   children,
@@ -19,10 +19,7 @@ export function DiscoverPanel({
 }) {
   return (
     <section
-      className={cn(
-        "rounded-xl border border-border bg-card shadow-sm overflow-hidden",
-        className,
-      )}
+      className={cn('rounded-xl border border-border bg-card shadow-sm overflow-hidden', className)}
     >
       {children}
     </section>
@@ -65,7 +62,7 @@ export function DiscoverSelect({
   className?: string;
 }) {
   return (
-    <div className={cn("min-w-[140px]", className)}>
+    <div className={cn('min-w-[140px]', className)}>
       <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
         {label}
       </label>
@@ -99,10 +96,10 @@ export function DiscoverToggleButton({
       type="button"
       onClick={onClick}
       className={cn(
-        "inline-flex h-10 items-center gap-2 rounded-lg border px-3 text-sm font-medium transition-colors",
+        'inline-flex h-10 items-center gap-2 rounded-lg border px-3 text-sm font-medium transition-colors',
         active
-          ? "border-primary bg-primary/10 text-primary"
-          : "border-border bg-background text-muted-foreground hover:border-ring hover:text-foreground",
+          ? 'border-primary bg-primary/10 text-primary'
+          : 'border-border bg-background text-muted-foreground hover:border-ring hover:text-foreground'
       )}
     >
       <SlidersHorizontal className="h-4 w-4" />
@@ -128,13 +125,7 @@ export function DiscoverClearButton({ onClick }: { onClick: () => void }) {
   );
 }
 
-export function FilterSection({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
+export function FilterSection({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-3">
       <span className="shrink-0 pt-1.5 text-xs font-medium text-muted-foreground sm:w-16">
@@ -164,10 +155,10 @@ export function GenrePills({
             type="button"
             onClick={() => onToggle(genre)}
             className={cn(
-              "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+              'rounded-full border px-3 py-1 text-xs font-medium transition-colors',
               isSelected
-                ? "border-primary bg-primary text-primary-foreground"
-                : "border-border bg-background text-muted-foreground hover:border-ring hover:text-foreground",
+                ? 'border-primary bg-primary text-primary-foreground'
+                : 'border-border bg-background text-muted-foreground hover:border-ring hover:text-foreground'
             )}
           >
             {genre}
@@ -197,10 +188,10 @@ export function SegmentedControl<T extends string>({
             type="button"
             onClick={() => onChange(opt.value)}
             className={cn(
-              "rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
+              'rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
               active
-                ? "bg-primary text-primary-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground",
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
             )}
           >
             {opt.label}
@@ -211,13 +202,7 @@ export function SegmentedControl<T extends string>({
   );
 }
 
-export function ActiveFilterChip({
-  label,
-  onRemove,
-}: {
-  label: string;
-  onRemove: () => void;
-}) {
+export function ActiveFilterChip({ label, onRemove }: { label: string; onRemove: () => void }) {
   return (
     <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/50 py-1 pl-2.5 pr-1 text-xs text-foreground">
       {label}

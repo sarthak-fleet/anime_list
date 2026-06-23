@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
-import { getRandomAnimePick } from "@/lib/api";
+import { useEffect, useState } from 'react';
+import { getRandomAnimePick } from '@/lib/api';
 
 export default function RandomPage() {
-  const [msg, setMsg] = useState("Picking a random anime…");
+  const [msg, setMsg] = useState('Picking a random anime…');
 
   useEffect(() => {
     let aborted = false;
@@ -14,11 +14,11 @@ export default function RandomPage() {
         if (id != null) {
           window.location.replace(`/anime/${id}`);
         } else {
-          setMsg("No anime available right now.");
+          setMsg('No anime available right now.');
         }
       })
       .catch(() => {
-        if (!aborted) setMsg("Could not reach the catalog. Try again.");
+        if (!aborted) setMsg('Could not reach the catalog. Try again.');
       });
     return () => {
       aborted = true;

@@ -1,12 +1,12 @@
-import { getDb } from "./client";
+import { getDb } from './client';
 import type {
   AnimeDetailCacheRecord,
   AnimeRelation,
   AnimeRecommendation,
-} from "../types/animeDetail";
+} from '../types/animeDetail';
 
 const parseCachedPayload = <T>(value: unknown): T[] => {
-  if (typeof value !== "string") return [];
+  if (typeof value !== 'string') return [];
 
   try {
     const parsed = JSON.parse(value);
@@ -17,8 +17,8 @@ const parseCachedPayload = <T>(value: unknown): T[] => {
 };
 
 async function getCachedCollection<T>(
-  tableName: "anime_relations_cache" | "anime_recommendations_cache",
-  malId: number,
+  tableName: 'anime_relations_cache' | 'anime_recommendations_cache',
+  malId: number
 ): Promise<AnimeDetailCacheRecord<T> | null> {
   const db = getDb();
   const result = await db.execute({
@@ -44,9 +44,9 @@ async function getCachedCollection<T>(
 }
 
 async function upsertCachedCollection<T>(
-  tableName: "anime_relations_cache" | "anime_recommendations_cache",
+  tableName: 'anime_relations_cache' | 'anime_recommendations_cache',
   malId: number,
-  data: T[],
+  data: T[]
 ): Promise<void> {
   const db = getDb();
   await db.execute({
@@ -62,27 +62,27 @@ async function upsertCachedCollection<T>(
 }
 
 export function getAnimeRelationsCache(
-  malId: number,
+  malId: number
 ): Promise<AnimeDetailCacheRecord<AnimeRelation> | null> {
-  return getCachedCollection<AnimeRelation>("anime_relations_cache", malId);
+  return getCachedCollection<AnimeRelation>('anime_relations_cache', malId);
 }
 
 export function getAnimeRecommendationsCache(
-  malId: number,
+  malId: number
 ): Promise<AnimeDetailCacheRecord<AnimeRecommendation> | null> {
-  return getCachedCollection<AnimeRecommendation>("anime_recommendations_cache", malId);
+  return getCachedCollection<AnimeRecommendation>('anime_recommendations_cache', malId);
 }
 
 export function upsertAnimeRelationsCache(
   malId: number,
-  relations: AnimeRelation[],
+  relations: AnimeRelation[]
 ): Promise<void> {
-  return upsertCachedCollection("anime_relations_cache", malId, relations);
+  return upsertCachedCollection('anime_relations_cache', malId, relations);
 }
 
 export function upsertAnimeRecommendationsCache(
   malId: number,
-  recommendations: AnimeRecommendation[],
+  recommendations: AnimeRecommendation[]
 ): Promise<void> {
-  return upsertCachedCollection("anime_recommendations_cache", malId, recommendations);
+  return upsertCachedCollection('anime_recommendations_cache', malId, recommendations);
 }

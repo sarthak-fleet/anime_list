@@ -1,4 +1,4 @@
-import { getDb } from "./client";
+import { getDb } from './client';
 
 export interface ScheduleRow {
   mal_id: string;
@@ -17,7 +17,7 @@ export async function initScheduleTable(): Promise<void> {
       sort_order INTEGER NOT NULL DEFAULT 0,
       PRIMARY KEY (user_id, mal_id)
     )`,
-    "CREATE INDEX IF NOT EXISTS idx_schedule_user ON anime_schedule(user_id)",
+    'CREATE INDEX IF NOT EXISTS idx_schedule_user ON anime_schedule(user_id)',
   ]);
 }
 
@@ -41,13 +41,13 @@ export async function getSchedule(userId: string): Promise<ScheduleRow[]> {
 
 export async function upsertScheduleItems(
   userId: string,
-  items: Array<{ malId: string; episodesPerDay?: number }>,
+  items: Array<{ malId: string; episodesPerDay?: number }>
 ): Promise<void> {
   const db = getDb();
 
   // Get current max sort_order
   const maxResult = await db.execute({
-    sql: "SELECT COALESCE(MAX(sort_order), -1) AS max_order FROM anime_schedule WHERE user_id = ?",
+    sql: 'SELECT COALESCE(MAX(sort_order), -1) AS max_order FROM anime_schedule WHERE user_id = ?',
     args: [userId],
   });
   let nextOrder = Number(maxResult.rows[0].max_order) + 1;
@@ -68,22 +68,22 @@ export async function upsertScheduleItems(
 export async function updateScheduleItem(
   userId: string,
   malId: string,
-  updates: { episodesPerDay?: number; sortOrder?: number; episodesWatched?: number },
+  updates: { episodesPerDay?: number; sortOrder?: number; episodesWatched?: number }
 ): Promise<void> {
   const db = getDb();
   const sets: string[] = [];
   const args: (string | number)[] = [];
 
   if (updates.episodesPerDay !== undefined) {
-    sets.push("episodes_per_day = ?");
+    sets.push('episodes_per_day = ?');
     args.push(updates.episodesPerDay);
   }
   if (updates.sortOrder !== undefined) {
-    sets.push("sort_order = ?");
+    sets.push('sort_order = ?');
     args.push(updates.sortOrder);
   }
   if (updates.episodesWatched !== undefined) {
-    sets.push("episodes_watched = ?");
+    sets.push('episodes_watched = ?');
     args.push(updates.episodesWatched);
   }
 
@@ -91,30 +91,24 @@ export async function updateScheduleItem(
 
   args.push(userId, malId);
   await db.execute({
-    sql: `UPDATE anime_schedule SET ${sets.join(", ")} WHERE user_id = ? AND mal_id = ?`,
+    sql: `UPDATE anime_schedule SET ${sets.join(', ')} WHERE user_id = ? AND mal_id = ?`,
     args,
   });
 }
 
-export async function removeScheduleItems(
-  userId: string,
-  malIds: string[],
-): Promise<void> {
+export async function removeScheduleItems(userId: string, malIds: string[]): Promise<void> {
   const db = getDb();
   const statements = malIds.map((id) => ({
-    sql: "DELETE FROM anime_schedule WHERE user_id = ? AND mal_id = ?",
+    sql: 'DELETE FROM anime_schedule WHERE user_id = ? AND mal_id = ?',
     args: [userId, id],
   }));
   await db.batch(statements);
 }
 
-export async function reorderSchedule(
-  userId: string,
-  orderedMalIds: string[],
-): Promise<void> {
+export async function reorderSchedule(userId: string, orderedMalIds: string[]): Promise<void> {
   const db = getDb();
   const statements = orderedMalIds.map((id, index) => ({
-    sql: "UPDATE anime_schedule SET sort_order = ? WHERE user_id = ? AND mal_id = ?",
+    sql: 'UPDATE anime_schedule SET sort_order = ? WHERE user_id = ? AND mal_id = ?',
     args: [index, userId, id],
   }));
   await db.batch(statements);

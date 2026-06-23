@@ -1,4 +1,4 @@
-import { AnimeField, FilterAction } from "../config";
+import { AnimeField, FilterAction } from '../config';
 
 export interface BaseAnimeItem {
   mal_id: number;
@@ -34,13 +34,9 @@ export type RawAnimeData = ({
   images?: { webp?: { image_url?: string }; jpg?: { image_url?: string } };
 } & BaseAnimeItem)[];
 
-export type ScoreMultiplier<T> = T extends string[]
-  ? { [subCategory: string]: number }
-  : number;
+export type ScoreMultiplier<T> = T extends string[] ? { [subCategory: string]: number } : number;
 
-export interface Filter<
-  T extends string | number | string[] = string | number | string[]
-> {
+export interface Filter<T extends string | number | string[] = string | number | string[]> {
   field: AnimeField;
   value: T;
   action: FilterAction;
@@ -57,10 +53,7 @@ export type NumericField =
   | AnimeField.Year
   | AnimeField.Episodes;
 
-export type ArrayField =
-  | AnimeField.Genres
-  | AnimeField.Themes
-  | AnimeField.Demographics;
+export type ArrayField = AnimeField.Genres | AnimeField.Themes | AnimeField.Demographics;
 
 export type StringField =
   | AnimeField.Title
@@ -108,10 +101,7 @@ export const ARRAY_ACTIONS = [
   FilterAction.Excludes,
 ] as const;
 
-export const TEXT_SEARCH_ACTIONS = [
-  FilterAction.Equals,
-  FilterAction.Contains,
-] as const;
+export const TEXT_SEARCH_ACTIONS = [FilterAction.Equals, FilterAction.Contains] as const;
 
 export type ComparisonAction = (typeof COMPARISON_ACTIONS)[number];
 export type ArrayAction = (typeof ARRAY_ACTIONS)[number];

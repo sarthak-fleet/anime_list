@@ -1,6 +1,6 @@
-import { Suspense } from "react";
-import { DiscoveryQueue } from "@/components/DiscoveryQueue";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { Suspense } from 'react';
+import { DiscoveryQueue } from '@/components/DiscoveryQueue';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 export default function DiscoverPage() {
   return (

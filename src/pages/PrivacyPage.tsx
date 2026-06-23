@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link } from '@tanstack/react-router';
 
 export default function PrivacyPage() {
   return (
@@ -19,20 +19,23 @@ export default function PrivacyPage() {
       <h2 className="mt-8 text-base font-semibold">What we don&apos;t</h2>
       <ul className="mt-2 list-disc space-y-1 pl-5">
         <li>No third-party analytics, tracking pixels, or remarketing.</li>
-        <li>Anime metadata is sourced from public APIs (Jikan, AniList) — we don&apos;t share your watchlist back with them.</li>
+        <li>
+          Anime metadata is sourced from public APIs (Jikan, AniList) — we don&apos;t share your
+          watchlist back with them.
+        </li>
         <li>No selling of subscriber data.</li>
       </ul>
 
       <h2 className="mt-8 text-base font-semibold">Rate limits</h2>
       <p className="mt-2">
-        Search uses an in-memory cache with stale-while-revalidate — your queries
-        are fast and the upstream APIs are quiet.
+        Search uses an in-memory cache with stale-while-revalidate — your queries are fast and the
+        upstream APIs are quiet.
       </p>
 
       <h2 className="mt-8 text-base font-semibold">Deletion</h2>
       <p className="mt-2">
-        Revoke the Google OAuth grant in your Google account to disconnect.
-        Email the maintainer to delete your watchlist and account data entirely.
+        Revoke the Google OAuth grant in your Google account to disconnect. Email the maintainer to
+        delete your watchlist and account data entirely.
       </p>
     </main>
   );

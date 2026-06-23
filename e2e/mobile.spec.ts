@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from '@playwright/test';
 
 /**
  * Mobile-viewport regression checks for the primary discovery flow.
@@ -6,20 +6,18 @@ import { expect, test } from "@playwright/test";
  * mobile target). Runs against E2E_BASE_URL or the deployed app.
  */
 
-test.describe("anime_list mobile primary flow", () => {
-  test("home page has no horizontal scroll", async ({ page }) => {
-    await page.goto("/");
+test.describe('anime_list mobile primary flow', () => {
+  test('home page has no horizontal scroll', async ({ page }) => {
+    await page.goto('/');
 
     const overflow = await page.evaluate(
-      () =>
-        document.documentElement.scrollWidth -
-        document.documentElement.clientWidth,
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth
     );
     expect(overflow).toBeLessThanOrEqual(1);
   });
 
-  test("title search input is reachable on mobile", async ({ page }) => {
-    await page.goto("/search");
+  test('title search input is reachable on mobile', async ({ page }) => {
+    await page.goto('/search');
 
     const search = page.getByPlaceholder(/title search/i);
     await expect(search).toBeVisible();

@@ -1,5 +1,5 @@
-import type { AnimeItem } from "./types/anime";
-import type { WatchlistData } from "./types/watchlist";
+import type { AnimeItem } from './types/anime';
+import type { WatchlistData } from './types/watchlist';
 
 export interface TasteSignal {
   name: string;
@@ -44,7 +44,7 @@ const NEGATIVE_STATUS_WEIGHTS: Record<string, number> = {
 export function buildTasteRecommendations(
   catalog: AnimeItem[],
   watchlist: WatchlistData,
-  limit = 12,
+  limit = 12
 ): { profile: TasteProfile; recommendations: TasteRecommendation[] } {
   const watchedIds = new Set(Object.keys(watchlist.anime));
   const watchedAnime = catalog.filter((anime) => watchedIds.has(String(anime.mal_id)));
@@ -53,7 +53,7 @@ export function buildTasteRecommendations(
   const typeWeights = new Map<string, number>();
 
   for (const anime of watchedAnime) {
-    const status = watchlist.anime[String(anime.mal_id)]?.status ?? "";
+    const status = watchlist.anime[String(anime.mal_id)]?.status ?? '';
     const weight = statusWeight(status);
     addMapWeights(genreWeights, Object.keys(anime.genres), weight);
     addMapWeights(themeWeights, Object.keys(anime.themes), weight);
@@ -81,7 +81,7 @@ function scoreAnime(
   anime: AnimeItem,
   genreWeights: Map<string, number>,
   themeWeights: Map<string, number>,
-  typeWeights: Map<string, number>,
+  typeWeights: Map<string, number>
 ): TasteRecommendation {
   const reasons: string[] = [];
   let tasteScore = 0;

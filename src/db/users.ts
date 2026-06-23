@@ -1,5 +1,5 @@
-import { getDb } from "./client";
-import { seedDefaultUserTags } from "./watchlist";
+import { getDb } from './client';
+import { seedDefaultUserTags } from './watchlist';
 
 export interface DbUser {
   id: string;
@@ -33,7 +33,7 @@ export async function findOrCreateUser(profile: {
   const db = getDb();
 
   const existing = await db.execute({
-    sql: "SELECT id, google_id, email, name, picture, created_at FROM users WHERE google_id = ?",
+    sql: 'SELECT id, google_id, email, name, picture, created_at FROM users WHERE google_id = ?',
     args: [profile.googleId],
   });
 
@@ -41,7 +41,7 @@ export async function findOrCreateUser(profile: {
     const row = existing.rows[0];
     // Update name/picture in case they changed
     await db.execute({
-      sql: "UPDATE users SET name = ?, picture = ? WHERE google_id = ?",
+      sql: 'UPDATE users SET name = ?, picture = ? WHERE google_id = ?',
       args: [profile.name, profile.picture ?? null, profile.googleId],
     });
     return {
@@ -56,13 +56,13 @@ export async function findOrCreateUser(profile: {
 
   // Check if a placeholder user exists for this email (from seed script)
   const byEmail = await db.execute({
-    sql: "SELECT id, google_id FROM users WHERE email = ?",
+    sql: 'SELECT id, google_id FROM users WHERE email = ?',
     args: [profile.email],
   });
-  if (byEmail.rows.length > 0 && (byEmail.rows[0].google_id as string).startsWith("pending_")) {
+  if (byEmail.rows.length > 0 && (byEmail.rows[0].google_id as string).startsWith('pending_')) {
     // Link the placeholder to the real Google account
     await db.execute({
-      sql: "UPDATE users SET google_id = ?, name = ?, picture = ? WHERE id = ?",
+      sql: 'UPDATE users SET google_id = ?, name = ?, picture = ? WHERE id = ?',
       args: [profile.googleId, profile.name, profile.picture ?? null, byEmail.rows[0].id as string],
     });
     await seedDefaultUserTags(byEmail.rows[0].id as string);
@@ -78,7 +78,7 @@ export async function findOrCreateUser(profile: {
 
   const id = crypto.randomUUID();
   await db.execute({
-    sql: "INSERT INTO users (id, google_id, email, name, picture) VALUES (?, ?, ?, ?, ?)",
+    sql: 'INSERT INTO users (id, google_id, email, name, picture) VALUES (?, ?, ?, ?, ?)',
     args: [id, profile.googleId, profile.email, profile.name, profile.picture ?? null],
   });
   await seedDefaultUserTags(id);

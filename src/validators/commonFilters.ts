@@ -1,5 +1,5 @@
-import { z } from "zod";
-import { FilterAction } from "../config";
+import { z } from 'zod';
+import { FilterAction } from '../config';
 
 export const comparisonActionSchema = z.enum([
   FilterAction.Equals,
@@ -9,19 +9,17 @@ export const comparisonActionSchema = z.enum([
   FilterAction.LessThanOrEquals,
 ] as const);
 
-export const arrayIncludesActionSchema = z.enum([FilterAction.IncludesAll, FilterAction.IncludesAny] as const);
+export const arrayIncludesActionSchema = z.enum([
+  FilterAction.IncludesAll,
+  FilterAction.IncludesAny,
+] as const);
 
 export const textSearchActionSchema = z.enum([FilterAction.Equals, FilterAction.Contains] as const);
 
 type RefinePath = Array<string | number>;
 
 export interface ArrayFieldValidators<Field extends string> {
-  validateValues?: (
-    field: Field,
-    values: string[],
-    ctx: z.RefinementCtx,
-    path: RefinePath
-  ) => void;
+  validateValues?: (field: Field, values: string[], ctx: z.RefinementCtx, path: RefinePath) => void;
   validateMultiplier?: (
     field: Field,
     multiplier: Record<string, number>,
@@ -52,7 +50,7 @@ export const createArrayFilterSchemas = <Field extends string>(
     })
     .superRefine((data, ctx) => {
       const field = data.field as Field;
-      validators?.validateValues?.(field, data.value, ctx, ["value"]);
+      validators?.validateValues?.(field, data.value, ctx, ['value']);
       if (data.score_multiplier) {
         validators?.validateMultiplier?.(field, data.score_multiplier, ctx);
       }
@@ -68,7 +66,7 @@ export const createArrayFilterSchemas = <Field extends string>(
     .superRefine((data, ctx) => {
       const field = data.field as Field;
       const values = Array.isArray(data.value) ? data.value : [data.value];
-      validators?.validateValues?.(field, values, ctx, ["value"]);
+      validators?.validateValues?.(field, values, ctx, ['value']);
     });
 
   return { includesSchema, excludesSchema };
@@ -113,7 +111,7 @@ export const createBooleanFilterSchema = <Field extends string>(
 
 export const createFilterUnion = <T>(schemas: z.ZodTypeAny[]): z.ZodType<T> => {
   if (schemas.length === 0) {
-    throw new Error("At least one schema is required to create a filter union");
+    throw new Error('At least one schema is required to create a filter union');
   }
 
   if (schemas.length === 1) {
@@ -121,9 +119,12 @@ export const createFilterUnion = <T>(schemas: z.ZodTypeAny[]): z.ZodType<T> => {
   }
 
   const [first, second, ...rest] = schemas;
-  return z.union([first, second, ...rest] as [z.ZodTypeAny, z.ZodTypeAny, ...z.ZodTypeAny[]]) as z.ZodType<T>;
+  return z.union([first, second, ...rest] as [
+    z.ZodTypeAny,
+    z.ZodTypeAny,
+    ...z.ZodTypeAny[],
+  ]) as z.ZodType<T>;
 };
 
-export const createFiltersArraySchema = <T>(
-  filterSchema: z.ZodType<T>
-): z.ZodArray<z.ZodType<T>> => z.array(filterSchema);
+export const createFiltersArraySchema = <T>(filterSchema: z.ZodType<T>): z.ZodArray<z.ZodType<T>> =>
+  z.array(filterSchema);

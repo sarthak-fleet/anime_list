@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import "@/lib/feedback-widget/index.css";
-import { useAuth } from "@/lib/auth";
-import { FeedbackWidget } from "@/lib/feedback-widget/index.mjs";
+import '@/lib/feedback-widget/index.css';
+import { useAuth } from '@/lib/auth';
+import { FeedbackWidget } from '@/lib/feedback-widget/index.mjs';
 
 export default function FeedbackWidgetWrapper() {
   const { user } = useAuth();

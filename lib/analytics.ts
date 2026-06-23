@@ -19,17 +19,17 @@
  *                    the watchlist, or running a discovery search.
  *  - `returned`    — a later session for a user who already has prior activity.
  */
-"use client";
+'use client';
 
-const PROJECT = "anime_list" as const;
+const PROJECT = 'anime_list' as const;
 
 async function capture(event: string, properties: Record<string, unknown>) {
-  const { default: posthog } = await import("posthog-js");
+  const { default: posthog } = await import('posthog-js');
   posthog.capture(event, properties);
 }
 
 /** The product-specific action behind a `core_action` event. */
-export type CoreAction = "watchlist_add" | "anime_search" | "manga_search";
+export type CoreAction = 'watchlist_add' | 'anime_search' | 'manga_search';
 
 interface AnalyticsEventMap {
   /** First Google sign-in for an account. */
@@ -44,7 +44,7 @@ interface AnalyticsEventMap {
 
 export function trackEvent(event: string, properties: Record<string, unknown> = {}): void {
   try {
-    if (typeof window === "undefined") return;
+    if (typeof window === 'undefined') return;
     void capture(event, { project_id: PROJECT, ...properties });
   } catch {
     // Analytics must NEVER break a user flow. Swallow and move on.
@@ -53,17 +53,17 @@ export function trackEvent(event: string, properties: Record<string, unknown> = 
 
 function emit<K extends keyof AnalyticsEventMap>(
   event: K,
-  props: Omit<AnalyticsEventMap[K], "project_id">,
+  props: Omit<AnalyticsEventMap[K], 'project_id'>
 ): void {
   trackEvent(event, props);
 }
 
 // localStorage keys tracking lifecycle milestones, keyed where relevant by
 // the userId so signup/returned distinguish a new account from a return visit.
-const SEEN_USERS_KEY = "mal:seen-users";
-const ACTIVATED_USERS_KEY = "mal:activated-users";
+const SEEN_USERS_KEY = 'mal:seen-users';
+const ACTIVATED_USERS_KEY = 'mal:activated-users';
 // Per-tab guard so `returned` fires at most once per session start.
-const RETURNED_FIRED_KEY = "mal:returned-fired";
+const RETURNED_FIRED_KEY = 'mal:returned-fired';
 
 function readList(key: string): string[] {
   try {
@@ -95,9 +95,9 @@ export function hasPriorActivity(userId: string): boolean {
  * Returns true if the event fired (i.e. this user was brand new).
  */
 export function trackSignup(userId: string): boolean {
-  if (typeof window === "undefined" || hasPriorActivity(userId)) return false;
+  if (typeof window === 'undefined' || hasPriorActivity(userId)) return false;
   appendToList(SEEN_USERS_KEY, userId);
-  emit("signup", {});
+  emit('signup', {});
   return true;
 }
 
@@ -106,14 +106,14 @@ export function trackSignup(userId: string): boolean {
  * No-op for a brand-new account (that session counts as `signup`).
  */
 export function trackReturned(userId: string): void {
-  if (typeof window === "undefined" || !hasPriorActivity(userId)) return;
+  if (typeof window === 'undefined' || !hasPriorActivity(userId)) return;
   try {
     if (sessionStorage.getItem(RETURNED_FIRED_KEY) === userId) return;
     sessionStorage.setItem(RETURNED_FIRED_KEY, userId);
   } catch {
     // sessionStorage unavailable — fall through, worst case it re-fires.
   }
-  emit("returned", {});
+  emit('returned', {});
 }
 
 /**
@@ -121,13 +121,13 @@ export function trackReturned(userId: string): void {
  * `userId` may be undefined for guests; activation is only tracked per account.
  */
 export function trackActivated(userId?: string | null): void {
-  if (typeof window === "undefined" || !userId) return;
+  if (typeof window === 'undefined' || !userId) return;
   if (readList(ACTIVATED_USERS_KEY).includes(userId)) return;
   appendToList(ACTIVATED_USERS_KEY, userId);
-  emit("activated", {});
+  emit('activated', {});
 }
 
 /** Fire on each completion of the core product action. */
 export function trackCoreAction(action: CoreAction): void {
-  emit("core_action", { action });
+  emit('core_action', { action });
 }

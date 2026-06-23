@@ -1,22 +1,14 @@
-import { AnimeField } from "../config";
+import { AnimeField } from '../config';
 import {
-  AnimeItem,
-  Filter,
+  type AnimeItem,
+  type Filter,
   isNumericField,
-  NumericField,
-  ScoreMultiplier,
-} from "../types/anime";
-import {
-  Distribution,
-  FieldCount,
-  Percentiles,
-  TypeDistribution,
-} from "../types/statistics";
+  type NumericField,
+  type ScoreMultiplier,
+} from '../types/anime';
+import type { Distribution, FieldCount, Percentiles, TypeDistribution } from '../types/statistics';
 
-const getNumericValue = (
-  item: AnimeItem,
-  field: AnimeField
-): number | undefined => {
+const getNumericValue = (item: AnimeItem, field: AnimeField): number | undefined => {
   switch (field) {
     case AnimeField.Score:
       return item.score;
@@ -39,10 +31,7 @@ const getNumericValue = (
   }
 };
 
-const getMapValue = (
-  item: AnimeItem,
-  field: AnimeField
-): { [key: string]: number } => {
+const getMapValue = (item: AnimeItem, field: AnimeField): { [key: string]: number } => {
   switch (field) {
     case AnimeField.Genres:
       return item.genres || {};
@@ -101,15 +90,12 @@ export const getDistribution = (
   return distribution;
 };
 
-export const getFieldCounts = (
-  animeList: AnimeItem[],
-  field: AnimeField
-): FieldCount[] => {
+export const getFieldCounts = (animeList: AnimeItem[], field: AnimeField): FieldCount[] => {
   const counts: { [key: string]: number } = {};
 
   animeList.forEach((anime) => {
     const value = getFieldValue(anime, field);
-    if (typeof value === "object" && value !== null) {
+    if (typeof value === 'object' && value !== null) {
       Object.keys(value).forEach((key) => {
         counts[key] = (counts[key] || 0) + 1;
       });
@@ -124,10 +110,7 @@ export const getFieldCounts = (
     .sort((a, b) => b.count - a.count);
 };
 
-export const getPercentiles = (
-  data: AnimeItem[],
-  field: AnimeField
-): Percentiles => {
+export const getPercentiles = (data: AnimeItem[], field: AnimeField): Percentiles => {
   const values = data
     .map((item) => getNumericValue(item, field))
     .filter((value): value is number => value !== undefined)
@@ -200,7 +183,7 @@ const normalizeValue = (
       const range = currentYear - minScore;
       if (range <= 0) return 5;
       // Simple normalization with slight recency bias
-      return Math.pow((value - minScore) / range, 0.8) * 10;
+      return ((value - minScore) / range) ** 0.8 * 10;
     }
 
     default:
@@ -228,10 +211,7 @@ type FiltersWithScoreRange =
     });
 
 // takes roughly 1ms, for 18000 anime, was taking upto 18s which is not ideal
-export const getAnimeScore = (
-  anime: AnimeItem,
-  filters: FiltersWithScoreRange[]
-): number => {
+export const getAnimeScore = (anime: AnimeItem, filters: FiltersWithScoreRange[]): number => {
   const fieldWiseMultipliers: Map<
     AnimeField,
     ScoreMultiplier<number | string | string[]>
@@ -241,58 +221,47 @@ export const getAnimeScore = (
     }
     return curr;
   }, new Map());
-  const baseScore = filters.reduce(
-    (currScore: number, filterVal: FiltersWithScoreRange) => {
-      const animeField = filterVal.field;
-      const value = anime[animeField];
+  const baseScore = filters.reduce((currScore: number, filterVal: FiltersWithScoreRange) => {
+    const animeField = filterVal.field;
+    const value = anime[animeField];
 
-      if (isNumericField(animeField)) {
-        if (typeof value !== "number") return currScore;
-        const numericFilter = filterVal as Extract<
-          FiltersWithScoreRange,
-          { field: NumericField }
-        >;
-        const normalizedValue = normalizeValue(
-          animeField,
-          value,
-          numericFilter.minScore,
-          numericFilter.maxScore
-        );
-        const baseWeight = BASE_WEIGHTS[animeField] || 1;
+    if (isNumericField(animeField)) {
+      if (typeof value !== 'number') return currScore;
+      const numericFilter = filterVal as Extract<FiltersWithScoreRange, { field: NumericField }>;
+      const normalizedValue = normalizeValue(
+        animeField,
+        value,
+        numericFilter.minScore,
+        numericFilter.maxScore
+      );
+      const baseWeight = BASE_WEIGHTS[animeField] || 1;
 
-        return (
-          currScore +
-          (1 +
-            normalizedValue *
-              baseWeight *
-              ((fieldWiseMultipliers.get(animeField) as number) || 1))
-        );
-      }
+      return (
+        currScore +
+        (1 + normalizedValue * baseWeight * ((fieldWiseMultipliers.get(animeField) as number) || 1))
+      );
+    }
 
-      switch (animeField) {
-        case AnimeField.Genres:
-        case AnimeField.Themes: {
-          const multiplier = fieldWiseMultipliers.get(animeField);
-          const animeInfoForField = getMapValue(anime, animeField);
-          if (multiplier) {
-            Object.keys(animeInfoForField).forEach((fieldVal) => {
-              const multiplierValue = (multiplier as { [key: string]: number })[
-                fieldVal
-              ];
-              if (multiplierValue !== undefined) {
-                currScore *= multiplierValue;
-              }
-            });
-          }
-          return currScore;
+    switch (animeField) {
+      case AnimeField.Genres:
+      case AnimeField.Themes: {
+        const multiplier = fieldWiseMultipliers.get(animeField);
+        const animeInfoForField = getMapValue(anime, animeField);
+        if (multiplier) {
+          Object.keys(animeInfoForField).forEach((fieldVal) => {
+            const multiplierValue = (multiplier as { [key: string]: number })[fieldVal];
+            if (multiplierValue !== undefined) {
+              currScore *= multiplierValue;
+            }
+          });
         }
-
-        default:
-          return currScore;
+        return currScore;
       }
-    },
-    1
-  );
+
+      default:
+        return currScore;
+    }
+  }, 1);
 
   return baseScore;
 };
@@ -355,22 +324,20 @@ export const getScoreSortedList = (
   sortBy?: NumericField,
   limit?: number
 ): ScoredAnime[] => {
-  const filtersWithScoreRange: FiltersWithScoreRange[] = filters.map(
-    (filter) => {
-      if (!isNumericField(filter.field)) return filter as FiltersWithScoreRange;
-      const { min, max } = minMaxOfAnimeList(animeList, filter.field);
-      return {
-        ...filter,
-        minScore: min,
-        maxScore: max,
-      };
-    }
-  );
+  const filtersWithScoreRange: FiltersWithScoreRange[] = filters.map((filter) => {
+    if (!isNumericField(filter.field)) return filter as FiltersWithScoreRange;
+    const { min, max } = minMaxOfAnimeList(animeList, filter.field);
+    return {
+      ...filter,
+      minScore: min,
+      maxScore: max,
+    };
+  });
   // Avoid spreading every anime into a new object; mutate-once with type cast
   // keeps allocations down on hot paths over the full 14k catalogue.
   const scored = animeList.map((anime) => {
     const points =
-      sortBy && typeof anime[sortBy] === "number"
+      sortBy && typeof anime[sortBy] === 'number'
         ? (anime[sortBy] as number)
         : getAnimeScore(anime, filtersWithScoreRange);
     (anime as ScoredAnime).points = points;

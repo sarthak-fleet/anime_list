@@ -1,22 +1,22 @@
-import { z } from "zod";
-import { AnimeField, Genre, Theme } from "../config";
+import { z } from 'zod';
+import { AnimeField, Genre, Theme } from '../config';
 import {
   ARRAY_FIELDS,
-  ArrayField,
-  Filter,
-  NumericField,
+  type ArrayField,
+  type Filter,
+  type NumericField,
   NUMERIC_FIELDS,
   STRING_FIELDS,
-  StringField,
-} from "../types/anime";
+  type StringField,
+} from '../types/anime';
 import {
   createArrayFilterSchemas,
   createFilterUnion,
   createFiltersArraySchema,
   createNumericFilterSchema,
   createStringFilterSchemas,
-} from "./commonFilters";
-import { watchTagSchema } from "./watchTags";
+} from './commonFilters';
+import { watchTagSchema } from './watchTags';
 
 const getValidCategories = (field: ArrayField): Set<string> => {
   if (field === AnimeField.Genres) return new Set<string>(Object.values(Genre));
@@ -35,14 +35,12 @@ const ensureValidCategories = (
     return;
   }
 
-  const invalidValues = values.filter(
-    (value) => !validCategories.has(value as Genre | Theme)
-  );
+  const invalidValues = values.filter((value) => !validCategories.has(value as Genre | Theme));
 
   if (invalidValues.length > 0) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: `Invalid ${field} values: ${invalidValues.join(", ")}`,
+      message: `Invalid ${field} values: ${invalidValues.join(', ')}`,
       path,
     });
   }
@@ -65,10 +63,8 @@ const ensureValidMultiplierCategories = (
   if (invalidKeys.length > 0) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: `Invalid categories in score_multiplier: ${invalidKeys.join(
-        ", "
-      )}`,
-      path: ["score_multiplier"],
+      message: `Invalid categories in score_multiplier: ${invalidKeys.join(', ')}`,
+      path: ['score_multiplier'],
     });
   }
 };
@@ -79,16 +75,17 @@ const stringFieldSchema = z.enum(STRING_FIELDS as [StringField, ...StringField[]
 
 const numericFilterSchema = createNumericFilterSchema(numericFieldSchema);
 
-const { includesSchema: arrayFilterIncludesSchema, excludesSchema: arrayFilterExcludesSchema } = createArrayFilterSchemas(
-  arrayFieldSchema,
-  {
+const { includesSchema: arrayFilterIncludesSchema, excludesSchema: arrayFilterExcludesSchema } =
+  createArrayFilterSchemas(arrayFieldSchema, {
     validateValues: ensureValidCategories,
     validateMultiplier: ensureValidMultiplierCategories,
-  }
-);
+  });
 
-const { textSchema: stringTextFilterSchema, includesSchema: stringIncludesFilterSchema, excludesSchema: stringExcludesFilterSchema } =
-  createStringFilterSchemas(stringFieldSchema);
+const {
+  textSchema: stringTextFilterSchema,
+  includesSchema: stringIncludesFilterSchema,
+  excludesSchema: stringExcludesFilterSchema,
+} = createStringFilterSchemas(stringFieldSchema);
 
 export const filterSchema = createFilterUnion<Filter>([
   numericFilterSchema,
@@ -101,20 +98,21 @@ export const filterSchema = createFilterUnion<Filter>([
 
 export const filtersSchema = createFiltersArraySchema(filterSchema);
 
-const airingSchema = z.enum(["yes", "no", "any"] as const);
+const airingSchema = z.enum(['yes', 'no', 'any'] as const);
 
-export const filterRequestSchema = z.object({
-  filters: filtersSchema,
-  hideWatched: z.array(watchTagSchema).default([]),
-  includeWatched: z.array(watchTagSchema).default([]),
-  pagesize: z.number().int().min(1).default(40),
-  offset: z.number().int().min(0).default(0),
-  sortBy: numericFieldSchema.optional(),
-  airing: airingSchema.default("any"),
-}).refine(
-  (data) => !(data.hideWatched.length > 0 && data.includeWatched.length > 0),
-  { message: "Cannot use both hideWatched and includeWatched at the same time" }
-);
+export const filterRequestSchema = z
+  .object({
+    filters: filtersSchema,
+    hideWatched: z.array(watchTagSchema).default([]),
+    includeWatched: z.array(watchTagSchema).default([]),
+    pagesize: z.number().int().min(1).default(40),
+    offset: z.number().int().min(0).default(0),
+    sortBy: numericFieldSchema.optional(),
+    airing: airingSchema.default('any'),
+  })
+  .refine((data) => !(data.hideWatched.length > 0 && data.includeWatched.length > 0), {
+    message: 'Cannot use both hideWatched and includeWatched at the same time',
+  });
 
 export type FilterRequestBody = z.infer<typeof filterRequestSchema> & {
   sortBy?: NumericField;

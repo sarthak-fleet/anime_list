@@ -1,15 +1,12 @@
-import { getSchedule, upsertScheduleItems, type ScheduleRow } from "../db/schedule";
-import { getAnimeWatchlist } from "../db/watchlist";
-import { animeStore } from "../store/animeStore";
-import type { WatchlistData } from "../types/watchlist";
-import {
-  computeTimeline,
-  type EnrichedScheduleItem,
-} from "./scheduleTimeline";
+import { getSchedule, upsertScheduleItems, type ScheduleRow } from '../db/schedule';
+import { getAnimeWatchlist } from '../db/watchlist';
+import { animeStore } from '../store/animeStore';
+import type { WatchlistData } from '../types/watchlist';
+import { computeTimeline, type EnrichedScheduleItem } from './scheduleTimeline';
 
 async function enrichScheduleItems(
   scheduleRows: ScheduleRow[],
-  watchlist: WatchlistData | null,
+  watchlist: WatchlistData | null
 ): Promise<EnrichedScheduleItem[]> {
   const allAnime = await animeStore.getAnimeList();
   const animeMap = new Map(allAnime.map((a) => [a.mal_id.toString(), a]));
@@ -32,7 +29,7 @@ async function enrichScheduleItems(
       type: anime?.type,
       score: anime?.score,
       url: anime?.url,
-      watchStatus: watched?.status || "",
+      watchStatus: watched?.status || '',
     };
   });
 }
@@ -47,13 +44,9 @@ export async function buildScheduleTimelineResponse(userId: string) {
   return { items, timeline, stats };
 }
 
-export async function addScheduleItems(
-  userId: string,
-  malIds: string[],
-  episodesPerDay: number,
-) {
+export async function addScheduleItems(userId: string, malIds: string[], episodesPerDay: number) {
   await upsertScheduleItems(
     userId,
-    malIds.map((id) => ({ malId: id, episodesPerDay: episodesPerDay })),
+    malIds.map((id) => ({ malId: id, episodesPerDay: episodesPerDay }))
   );
 }

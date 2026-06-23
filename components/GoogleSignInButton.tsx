@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useEffect, useRef, useState } from "react";
-import { useAuth } from "@/lib/auth";
-import { Button } from "@/components/ui/button";
+import { useEffect, useRef, useState } from 'react';
+import { useAuth } from '@/lib/auth';
+import { Button } from '@/components/ui/button';
 
 declare global {
   interface Window {
@@ -39,7 +39,7 @@ export default function GoogleSignInButton() {
           try {
             await login(response.credential);
           } catch (err) {
-            console.error("Login failed:", err);
+            console.error('Login failed:', err);
           }
         },
       });
@@ -56,20 +56,18 @@ export default function GoogleSignInButton() {
     // pulled 186 KiB on every page including the landing, where most
     // visitors never sign in. Loading from here keeps the home LCP clean
     // and only pays the cost on routes that actually render the button.
-    const existing = document.querySelector<HTMLScriptElement>(
-      'script[data-gsi-loader="true"]',
-    );
-    const script = existing ?? document.createElement("script");
+    const existing = document.querySelector<HTMLScriptElement>('script[data-gsi-loader="true"]');
+    const script = existing ?? document.createElement('script');
     if (!existing) {
-      script.src = "https://accounts.google.com/gsi/client";
+      script.src = 'https://accounts.google.com/gsi/client';
       script.async = true;
       script.defer = true;
-      script.dataset["gsiLoader"] = "true";
+      script.dataset.gsiLoader = 'true';
       document.head.appendChild(script);
     }
     const onLoad = () => initGoogle();
-    script.addEventListener("load", onLoad);
-    return () => script.removeEventListener("load", onLoad);
+    script.addEventListener('load', onLoad);
+    return () => script.removeEventListener('load', onLoad);
   }, [login]);
 
   const handleClick = () => {

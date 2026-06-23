@@ -1,32 +1,32 @@
-import { useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
-import { ExternalLink, Plus, Trash2 } from "lucide-react";
+import { useMemo, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Link } from '@tanstack/react-router';
+import { ExternalLink, Plus, Trash2 } from 'lucide-react';
 import {
   createCollection,
   deleteCollection,
   getEnrichedWatchlist,
   listMyCollections,
   updateCollection,
-} from "@/lib/api";
-import { useAuth } from "@/lib/auth";
-import { Card } from "@/components/ui/card";
+} from '@/lib/api';
+import { useAuth } from '@/lib/auth';
+import { Card } from '@/components/ui/card';
 
 export default function CollectionsPage() {
   const { user, loading } = useAuth();
   const queryClient = useQueryClient();
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const { data: collectionsData, isLoading } = useQuery({
-    queryKey: ["collections", "mine"],
+    queryKey: ['collections', 'mine'],
     queryFn: listMyCollections,
     enabled: !!user,
   });
 
   const { data: watchlistData } = useQuery({
-    queryKey: ["watchlist", "enriched"],
+    queryKey: ['watchlist', 'enriched'],
     queryFn: getEnrichedWatchlist,
     enabled: !!user,
   });
@@ -36,20 +36,20 @@ export default function CollectionsPage() {
       createCollection({
         title,
         description,
-        visibility: "public",
-        items: selectedIds.map((mal_id) => ({ mal_id, media_type: "anime" })),
+        visibility: 'public',
+        items: selectedIds.map((mal_id) => ({ mal_id, media_type: 'anime' })),
       }),
     onSuccess: () => {
-      setTitle("");
-      setDescription("");
+      setTitle('');
+      setDescription('');
       setSelectedIds([]);
-      queryClient.invalidateQueries({ queryKey: ["collections"] });
+      queryClient.invalidateQueries({ queryKey: ['collections'] });
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteCollection(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["collections"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['collections'] }),
   });
 
   const watchlistItems = watchlistData?.items ?? [];
@@ -57,7 +57,9 @@ export default function CollectionsPage() {
   const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
 
   if (loading) {
-    return <div className="max-w-5xl mx-auto px-4 py-10 text-sm text-muted-foreground">Loading…</div>;
+    return (
+      <div className="max-w-5xl mx-auto px-4 py-10 text-sm text-muted-foreground">Loading…</div>
+    );
   }
 
   if (!user) {
@@ -65,7 +67,9 @@ export default function CollectionsPage() {
       <div className="max-w-5xl mx-auto px-4 py-10">
         <Card className="p-6">
           <h1 className="text-xl font-semibold">Collections</h1>
-          <p className="mt-2 text-sm text-muted-foreground">Sign in to publish curated anime lists.</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Sign in to publish curated anime lists.
+          </p>
         </Card>
       </div>
     );
@@ -101,7 +105,10 @@ export default function CollectionsPage() {
             <p className="text-xs text-muted-foreground p-2">Add titles to your watchlist first.</p>
           ) : (
             watchlistItems.slice(0, 40).map((item) => (
-              <label key={item.mal_id} className="flex items-center gap-2 rounded px-2 py-1 text-sm hover:bg-accent/40">
+              <label
+                key={item.mal_id}
+                className="flex items-center gap-2 rounded px-2 py-1 text-sm hover:bg-accent/40"
+              >
                 <input
                   type="checkbox"
                   checked={selectedSet.has(item.mal_id)}
@@ -109,7 +116,7 @@ export default function CollectionsPage() {
                     setSelectedIds((prev) =>
                       event.target.checked
                         ? [...prev, item.mal_id]
-                        : prev.filter((id) => id !== item.mal_id),
+                        : prev.filter((id) => id !== item.mal_id)
                     );
                   }}
                 />
@@ -141,7 +148,9 @@ export default function CollectionsPage() {
               <Card key={collection.id} className="p-4 space-y-3">
                 <div>
                   <p className="font-medium">{collection.title}</p>
-                  <p className="text-xs text-muted-foreground line-clamp-2">{collection.description || "No description"}</p>
+                  <p className="text-xs text-muted-foreground line-clamp-2">
+                    {collection.description || 'No description'}
+                  </p>
                 </div>
                 <div className="flex items-center gap-2">
                   <Link
@@ -155,13 +164,13 @@ export default function CollectionsPage() {
                   <button
                     type="button"
                     onClick={() =>
-                      updateCollection(collection.id, { visibility: collection.visibility === "public" ? "private" : "public" }).then(() =>
-                        queryClient.invalidateQueries({ queryKey: ["collections"] }),
-                      )
+                      updateCollection(collection.id, {
+                        visibility: collection.visibility === 'public' ? 'private' : 'public',
+                      }).then(() => queryClient.invalidateQueries({ queryKey: ['collections'] }))
                     }
                     className="text-xs text-muted-foreground hover:text-foreground"
                   >
-                    {collection.visibility === "public" ? "Make private" : "Make public"}
+                    {collection.visibility === 'public' ? 'Make private' : 'Make public'}
                   </button>
                   <button
                     type="button"

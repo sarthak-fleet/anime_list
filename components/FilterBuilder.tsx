@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import {
   useQueryState,
   parseAsString,
@@ -8,24 +8,23 @@ import {
   parseAsArrayOf,
   parseAsInteger,
   parseAsJson,
-} from "nuqs";
-import { useQuery } from "@tanstack/react-query";
-import type { SearchFilter, SearchResponse } from "@/lib/types";
-import { getFields, getFilterActions, getWatchlistTags, searchAnime, createSavedSearch } from "@/lib/api";
-import { useAuth } from "@/lib/auth";
-import { trackCoreAction } from "@/lib/analytics";
+} from 'nuqs';
+import { useQuery } from '@tanstack/react-query';
+import type { SearchFilter, SearchResponse } from '@/lib/types';
 import {
-  DEFAULT_ANIME_MIN_MEMBERS,
-  DEFAULT_ANIME_PAGE_SIZE,
-} from "@/lib/animeSearchDefaults";
-import { DEFAULT_FIELD_OPTIONS, DEFAULT_FILTER_ACTIONS } from "@/lib/filterMetadata";
-import FilterRow from "./FilterRow";
-import ResultsGrid, { ResultsGridSkeleton } from "./ResultsGrid";
-import {
-  ANIME_SORT_OPTIONS,
-  POPULARITY_PRESETS,
-  QUICK_GENRES,
-} from "./discover/constants";
+  getFields,
+  getFilterActions,
+  getWatchlistTags,
+  searchAnime,
+  createSavedSearch,
+} from '@/lib/api';
+import { useAuth } from '@/lib/auth';
+import { trackCoreAction } from '@/lib/analytics';
+import { DEFAULT_ANIME_MIN_MEMBERS, DEFAULT_ANIME_PAGE_SIZE } from '@/lib/animeSearchDefaults';
+import { DEFAULT_FIELD_OPTIONS, DEFAULT_FILTER_ACTIONS } from '@/lib/filterMetadata';
+import FilterRow from './FilterRow';
+import ResultsGrid, { ResultsGridSkeleton } from './ResultsGrid';
+import { ANIME_SORT_OPTIONS, POPULARITY_PRESETS, QUICK_GENRES } from './discover/constants';
 import {
   ActiveFilterChip,
   DiscoverClearButton,
@@ -36,19 +35,19 @@ import {
   FilterSection,
   GenrePills,
   SegmentedControl,
-} from "./discover/ui";
-import { cn } from "@/lib/utils";
-import { resolveTagColor, toRgba } from "@/lib/watchStatus";
+} from './discover/ui';
+import { cn } from '@/lib/utils';
+import { resolveTagColor, toRgba } from '@/lib/watchStatus';
 
 const DEFAULT_FILTER: SearchFilter = {
-  field: "score",
-  action: "GREATER_THAN_OR_EQUALS",
+  field: 'score',
+  action: 'GREATER_THAN_OR_EQUALS',
   value: 7,
 };
-const RELEVANCE_SORT_VALUE = "relevance";
-const SINGLE_VALUE_OPTION_FIELDS = new Set(["type", "season"]);
+const RELEVANCE_SORT_VALUE = 'relevance';
+const SINGLE_VALUE_OPTION_FIELDS = new Set(['type', 'season']);
 
-const SEASON_NAMES = ["winter", "spring", "summer", "fall"] as const;
+const SEASON_NAMES = ['winter', 'spring', 'summer', 'fall'] as const;
 
 const currentSeasonIndex = (() => {
   const month = new Date().getMonth();
@@ -63,19 +62,21 @@ const SEASON_OPTIONS = Array.from({ length: 18 }, (_, i) => currentYear - i).fla
   [...SEASON_NAMES].reverse().flatMap((season) => {
     const idx = SEASON_NAMES.indexOf(season);
     if (year === currentYear && idx > currentSeasonIndex) return [];
-    return [{
-      value: `${season}-${year}`,
-      label: `${season[0].toUpperCase()}${season.slice(1)} ${year}`,
-      season,
-      year,
-    }];
-  }),
+    return [
+      {
+        value: `${season}-${year}`,
+        label: `${season[0].toUpperCase()}${season.slice(1)} ${year}`,
+        season,
+        year,
+      },
+    ];
+  })
 );
 
 const AIRING_OPTIONS = [
-  { value: "any" as const, label: "All" },
-  { value: "yes" as const, label: "Airing" },
-  { value: "no" as const, label: "Finished" },
+  { value: 'any' as const, label: 'All' },
+  { value: 'yes' as const, label: 'Airing' },
+  { value: 'no' as const, label: 'Finished' },
 ];
 
 const filtersParser = parseAsJson<SearchFilter[]>((v) => {
@@ -86,13 +87,13 @@ const filtersParser = parseAsJson<SearchFilter[]>((v) => {
 function normalizeFilter(filter: SearchFilter): SearchFilter {
   if (!SINGLE_VALUE_OPTION_FIELDS.has(filter.field)) return filter;
   const value = Array.isArray(filter.value)
-    ? filter.value[0] ?? ""
-    : typeof filter.value === "string"
+    ? (filter.value[0] ?? '')
+    : typeof filter.value === 'string'
       ? filter.value
-      : "";
+      : '';
   return {
     ...filter,
-    action: filter.action === "EXCLUDES" ? "EXCLUDES" : "EQUALS",
+    action: filter.action === 'EXCLUDES' ? 'EXCLUDES' : 'EQUALS',
     value,
   };
 }
@@ -102,26 +103,26 @@ function isFilterValuePresent(filter: SearchFilter): boolean {
   if (Array.isArray(normalizedFilter.value)) {
     return normalizedFilter.value.length > 0;
   }
-  return normalizedFilter.value !== "" && normalizedFilter.value !== undefined;
+  return normalizedFilter.value !== '' && normalizedFilter.value !== undefined;
 }
 
 const ACTION_LABEL: Record<string, string> = {
-  EQUALS: "=",
-  GREATER_THAN: ">",
-  GREATER_THAN_OR_EQUALS: "≥",
-  LESS_THAN: "<",
-  LESS_THAN_OR_EQUALS: "≤",
-  INCLUDES_ALL: "includes",
-  INCLUDES_ANY: "any of",
-  EXCLUDES: "excl.",
-  CONTAINS: "~",
+  EQUALS: '=',
+  GREATER_THAN: '>',
+  GREATER_THAN_OR_EQUALS: '≥',
+  LESS_THAN: '<',
+  LESS_THAN_OR_EQUALS: '≤',
+  INCLUDES_ALL: 'includes',
+  INCLUDES_ANY: 'any of',
+  EXCLUDES: 'excl.',
+  CONTAINS: '~',
 };
 
 function formatFilterChip(filter: SearchFilter): string {
-  const words = filter.field.split("_");
-  const field = [words[0][0].toUpperCase() + words[0].slice(1), ...words.slice(1)].join(" ");
-  const op = ACTION_LABEL[filter.action] ?? filter.action.toLowerCase().replace(/_/g, " ");
-  const value = Array.isArray(filter.value) ? filter.value.join(", ") : String(filter.value);
+  const words = filter.field.split('_');
+  const field = [words[0][0].toUpperCase() + words[0].slice(1), ...words.slice(1)].join(' ');
+  const op = ACTION_LABEL[filter.action] ?? filter.action.toLowerCase().replace(/_/g, ' ');
+  const value = Array.isArray(filter.value) ? filter.value.join(', ') : String(filter.value);
   return `${field} ${op} ${value}`;
 }
 
@@ -130,43 +131,40 @@ type FilterBuilderProps = {
   initialSearchKey?: string;
 };
 
-export default function FilterBuilder({
-  initialSearchData,
-  initialSearchKey,
-}: FilterBuilderProps) {
+export default function FilterBuilder({ initialSearchData, initialSearchKey }: FilterBuilderProps) {
   const { user } = useAuth();
-  const [filters, setFilters] = useQueryState("af", filtersParser.withDefault([]));
-  const [searchText, setSearchText] = useQueryState("q", parseAsString.withDefault(""));
-  const [sortBy, setSortBy] = useQueryState("sort", parseAsString.withDefault("score"));
-  const [selectedSeason, setSelectedSeason] = useQueryState("season", parseAsString.withDefault("any"));
+  const [filters, setFilters] = useQueryState('af', filtersParser.withDefault([]));
+  const [searchText, setSearchText] = useQueryState('q', parseAsString.withDefault(''));
+  const [sortBy, setSortBy] = useQueryState('sort', parseAsString.withDefault('score'));
+  const [selectedSeason, setSelectedSeason] = useQueryState(
+    'season',
+    parseAsString.withDefault('any')
+  );
   const [minMembers, setMinMembers] = useQueryState(
-    "min",
-    parseAsInteger.withDefault(DEFAULT_ANIME_MIN_MEMBERS),
+    'min',
+    parseAsInteger.withDefault(DEFAULT_ANIME_MIN_MEMBERS)
   );
   const [airing, setAiring] = useQueryState(
-    "airing",
-    parseAsStringLiteral(["yes", "no", "any"] as const).withDefault("any"),
+    'airing',
+    parseAsStringLiteral(['yes', 'no', 'any'] as const).withDefault('any')
   );
   const [selectedGenres, setSelectedGenres] = useQueryState(
-    "genres",
-    parseAsArrayOf(parseAsString).withDefault([]),
+    'genres',
+    parseAsArrayOf(parseAsString).withDefault([])
   );
   const [hideWatched, setHideWatched] = useQueryState(
-    "wt",
-    parseAsArrayOf(parseAsString).withDefault([]),
+    'wt',
+    parseAsArrayOf(parseAsString).withDefault([])
   );
   const [watchlistMode, setWatchlistMode] = useQueryState(
-    "wm",
-    parseAsStringLiteral(["hide", "show"] as const).withDefault("hide"),
+    'wm',
+    parseAsStringLiteral(['hide', 'show'] as const).withDefault('hide')
   );
   const [pagesize, setPagesize] = useQueryState(
-    "pagesize",
-    parseAsInteger.withDefault(DEFAULT_ANIME_PAGE_SIZE),
+    'pagesize',
+    parseAsInteger.withDefault(DEFAULT_ANIME_PAGE_SIZE)
   );
-  const [currentPage, setCurrentPage] = useQueryState(
-    "page",
-    parseAsInteger.withDefault(1),
-  );
+  const [currentPage, setCurrentPage] = useQueryState('page', parseAsInteger.withDefault(1));
 
   const normalizedFilters = filters.map(normalizeFilter);
   const activeAdvancedFilters = normalizedFilters.filter(isFilterValuePresent);
@@ -184,33 +182,31 @@ export default function FilterBuilder({
     debounceRef.current = setTimeout(() => {
       setSearchText(value);
       setCurrentPage(1);
-      if (value.trim()) trackCoreAction("anime_search");
+      if (value.trim()) trackCoreAction('anime_search');
     }, 300);
   };
 
-  const [showAdvanced, setShowAdvanced] = useState(
-    () => activeAdvancedFilters.length > 0,
-  );
+  const [showAdvanced, setShowAdvanced] = useState(() => activeAdvancedFilters.length > 0);
   const [saveSearchOpen, setSaveSearchOpen] = useState(false);
-  const [saveSearchName, setSaveSearchName] = useState("");
+  const [saveSearchName, setSaveSearchName] = useState('');
   const [saveSearchMessage, setSaveSearchMessage] = useState<string | null>(null);
 
   const resetPage = () => setCurrentPage(1);
 
   const { data: fields } = useQuery({
-    queryKey: ["fields"],
+    queryKey: ['fields'],
     queryFn: getFields,
     initialData: DEFAULT_FIELD_OPTIONS,
   });
 
   const { data: actions } = useQuery({
-    queryKey: ["filterActions"],
+    queryKey: ['filterActions'],
     queryFn: getFilterActions,
     initialData: DEFAULT_FILTER_ACTIONS,
   });
 
   const { data: watchlistTagsData } = useQuery({
-    queryKey: ["watchlist", "tags"],
+    queryKey: ['watchlist', 'tags'],
     queryFn: () => getWatchlistTags(),
     enabled: !!user,
   });
@@ -223,24 +219,24 @@ export default function FilterBuilder({
 
     if (selectedGenres.length > 0) {
       allFilters.push({
-        field: "genres",
-        action: "INCLUDES_ALL",
+        field: 'genres',
+        action: 'INCLUDES_ALL',
         value: selectedGenres,
       });
     }
 
     if (searchText.trim()) {
       allFilters.push({
-        field: "title",
-        action: "CONTAINS",
+        field: 'title',
+        action: 'CONTAINS',
         value: searchText.trim(),
       });
     }
 
     if (minMembers > 0) {
       allFilters.push({
-        field: "members",
-        action: "GREATER_THAN_OR_EQUALS",
+        field: 'members',
+        action: 'GREATER_THAN_OR_EQUALS',
         value: minMembers,
       });
     }
@@ -248,8 +244,8 @@ export default function FilterBuilder({
     const seasonOption = SEASON_OPTIONS.find((option) => option.value === selectedSeason);
     if (seasonOption) {
       allFilters.push(
-        { field: "season", action: "EQUALS", value: seasonOption.season },
-        { field: "year", action: "EQUALS", value: seasonOption.year },
+        { field: 'season', action: 'EQUALS', value: seasonOption.season },
+        { field: 'year', action: 'EQUALS', value: seasonOption.year }
       );
     }
 
@@ -262,8 +258,8 @@ export default function FilterBuilder({
         offset,
         sortBy: sortBy === RELEVANCE_SORT_VALUE ? undefined : sortBy || undefined,
         airing,
-        hideWatched: watchlistMode === "hide" ? hideWatched : [],
-        includeWatched: watchlistMode === "show" ? hideWatched : [],
+        hideWatched: watchlistMode === 'hide' ? hideWatched : [],
+        includeWatched: watchlistMode === 'show' ? hideWatched : [],
       },
     };
   }, [
@@ -282,8 +278,14 @@ export default function FilterBuilder({
 
   const filterKey = JSON.stringify(buildSearchOpts());
 
-  const { data, isLoading: loading, isFetching, error, refetch } = useQuery<SearchResponse>({
-    queryKey: ["search", filterKey],
+  const {
+    data,
+    isLoading: loading,
+    isFetching,
+    error,
+    refetch,
+  } = useQuery<SearchResponse>({
+    queryKey: ['search', filterKey],
     queryFn: () => {
       const { filters: f, opts } = buildSearchOpts();
       return searchAnime(f, opts);
@@ -296,14 +298,14 @@ export default function FilterBuilder({
 
   const toggleGenre = (genre: string) => {
     setSelectedGenres((prev) =>
-      prev.includes(genre) ? prev.filter((g) => g !== genre) : [...prev, genre],
+      prev.includes(genre) ? prev.filter((g) => g !== genre) : [...prev, genre]
     );
     resetPage();
   };
 
   const toggleHideWatched = (status: string) => {
     setHideWatched((prev) =>
-      prev.includes(status) ? prev.filter((s) => s !== status) : [...prev, status],
+      prev.includes(status) ? prev.filter((s) => s !== status) : [...prev, status]
     );
     resetPage();
   };
@@ -313,18 +315,18 @@ export default function FilterBuilder({
     if (!user || activeFilters.length === 0 || !saveSearchName.trim()) return;
     try {
       await createSavedSearch(saveSearchName.trim(), activeFilters);
-      setSaveSearchMessage("Saved. New matches will appear in Alerts after the next catalog refresh.");
-      setSaveSearchName("");
+      setSaveSearchMessage(
+        'Saved. New matches will appear in Alerts after the next catalog refresh.'
+      );
+      setSaveSearchName('');
       setSaveSearchOpen(false);
     } catch {
-      setSaveSearchMessage("Could not save search. Sign in and try again.");
+      setSaveSearchMessage('Could not save search. Sign in and try again.');
     }
   }
 
   const updateFilter = (index: number, filter: SearchFilter) => {
-    setFilters((prev) =>
-      prev.map((f, i) => (i === index ? normalizeFilter(filter) : f)),
-    );
+    setFilters((prev) => prev.map((f, i) => (i === index ? normalizeFilter(filter) : f)));
     resetPage();
   };
 
@@ -341,16 +343,16 @@ export default function FilterBuilder({
 
   const clearAll = () => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    setInputValue("");
+    setInputValue('');
     setSelectedGenres([]);
-    setSearchText("");
+    setSearchText('');
     setFilters([]);
-    setSortBy("score");
-    setSelectedSeason("any");
+    setSortBy('score');
+    setSelectedSeason('any');
     setMinMembers(DEFAULT_ANIME_MIN_MEMBERS);
-    setAiring("any");
+    setAiring('any');
     setHideWatched([]);
-    setWatchlistMode("hide");
+    setWatchlistMode('hide');
     setPagesize(DEFAULT_ANIME_PAGE_SIZE);
     setShowAdvanced(false);
     setCurrentPage(1);
@@ -362,20 +364,20 @@ export default function FilterBuilder({
         value: String(p.value),
         label: p.label,
       })),
-    [],
+    []
   );
 
   const sortOptions = useMemo(
     () => ANIME_SORT_OPTIONS.map((o) => ({ value: o.value, label: o.label })),
-    [],
+    []
   );
 
   const seasonSelectOptions = useMemo(
     () => [
-      { value: "any", label: "Any season" },
+      { value: 'any', label: 'Any season' },
       ...SEASON_OPTIONS.map((o) => ({ value: o.value, label: o.label })),
     ],
-    [],
+    []
   );
 
   const selectedSeasonLabel = seasonSelectOptions.find((o) => o.value === selectedSeason)?.label;
@@ -384,8 +386,8 @@ export default function FilterBuilder({
   const hasActiveChips =
     searchText.trim().length > 0 ||
     selectedGenres.length > 0 ||
-    selectedSeason !== "any" ||
-    airing !== "any" ||
+    selectedSeason !== 'any' ||
+    airing !== 'any' ||
     minMembers !== DEFAULT_ANIME_MIN_MEMBERS ||
     activeAdvancedFilters.length > 0 ||
     hideWatched.length > 0;
@@ -394,12 +396,8 @@ export default function FilterBuilder({
   const totalPages = totalFiltered > 0 ? Math.ceil(totalFiltered / pagesize) : 0;
   const hasNext = currentPage < totalPages;
   const hasPrev = currentPage > 1;
-  const browsingMode = selectedSeasonLabel === "Any season"
-    ? "All seasons"
-    : selectedSeasonLabel;
-  const resultLabel = data
-    ? `${totalFiltered.toLocaleString()} titles`
-    : "Catalog ready";
+  const browsingMode = selectedSeasonLabel === 'Any season' ? 'All seasons' : selectedSeasonLabel;
+  const resultLabel = data ? `${totalFiltered.toLocaleString()} titles` : 'Catalog ready';
 
   if (!fields || !actions) {
     return <ResultsGridSkeleton />;
@@ -417,26 +415,29 @@ export default function FilterBuilder({
               Find the next anime worth your time.
             </h1>
             <p className="mt-4 max-w-2xl text-sm leading-6 text-muted-foreground md:text-base">
-              Start from proven crowd signal, then narrow by season, genre, status, and your own watchlist.
-              The default shelf is intentionally biased toward highly watched, highly scored titles.
+              Start from proven crowd signal, then narrow by season, genre, status, and your own
+              watchlist. The default shelf is intentionally biased toward highly watched, highly
+              scored titles.
             </p>
           </div>
 
           <div className="rounded-xl border border-white/10 bg-background/60 p-4 backdrop-blur">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Now browsing</p>
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Now browsing
+                </p>
                 <p className="mt-1 text-2xl font-semibold text-foreground">{resultLabel}</p>
               </div>
               <span className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                {isFetching ? "Updating" : "Live"}
+                {isFetching ? 'Updating' : 'Live'}
               </span>
             </div>
             <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
               <div className="rounded-lg bg-white/[0.04] p-3">
                 <p className="text-xs text-muted-foreground">Sort</p>
                 <p className="mt-1 font-medium text-foreground">
-                  {ANIME_SORT_OPTIONS.find((o) => o.value === sortBy)?.label ?? "Score"}
+                  {ANIME_SORT_OPTIONS.find((o) => o.value === sortBy)?.label ?? 'Score'}
                 </p>
               </div>
               <div className="rounded-lg bg-white/[0.04] p-3">
@@ -445,12 +446,12 @@ export default function FilterBuilder({
               </div>
               <div className="rounded-lg bg-white/[0.04] p-3">
                 <p className="text-xs text-muted-foreground">Popularity</p>
-                <p className="mt-1 font-medium text-foreground">{popularityLabel ?? "Custom"}</p>
+                <p className="mt-1 font-medium text-foreground">{popularityLabel ?? 'Custom'}</p>
               </div>
               <div className="rounded-lg bg-white/[0.04] p-3">
                 <p className="text-xs text-muted-foreground">Genres</p>
                 <p className="mt-1 font-medium text-foreground">
-                  {selectedGenres.length > 0 ? selectedGenres.slice(0, 2).join(", ") : "Any genre"}
+                  {selectedGenres.length > 0 ? selectedGenres.slice(0, 2).join(', ') : 'Any genre'}
                 </p>
               </div>
             </div>
@@ -506,11 +507,7 @@ export default function FilterBuilder({
 
         <div className="space-y-4 border-t border-border px-4 py-4">
           <FilterSection label="Genres">
-            <GenrePills
-              genres={QUICK_GENRES}
-              selected={selectedGenres}
-              onToggle={toggleGenre}
-            />
+            <GenrePills genres={QUICK_GENRES} selected={selectedGenres} onToggle={toggleGenre} />
           </FilterSection>
 
           <FilterSection label="Status">
@@ -530,8 +527,8 @@ export default function FilterBuilder({
                 <SegmentedControl
                   value={watchlistMode}
                   options={[
-                    { value: "hide" as const, label: "Hide tagged" },
-                    { value: "show" as const, label: "Only tagged" },
+                    { value: 'hide' as const, label: 'Hide tagged' },
+                    { value: 'show' as const, label: 'Only tagged' },
                   ]}
                   onChange={(val) => {
                     setWatchlistMode(val);
@@ -549,7 +546,7 @@ export default function FilterBuilder({
                       className="rounded-full border px-3 py-1 text-xs font-medium transition-colors"
                       style={{
                         borderColor: active ? color : toRgba(color, 0.25),
-                        backgroundColor: active ? toRgba(color, 0.15) : "transparent",
+                        backgroundColor: active ? toRgba(color, 0.15) : 'transparent',
                         color: active ? color : toRgba(color, 0.7),
                       }}
                     >
@@ -602,33 +599,29 @@ export default function FilterBuilder({
               <ActiveFilterChip
                 label={`Search: ${searchText.trim()}`}
                 onRemove={() => {
-                  setInputValue("");
-                  setSearchText("");
+                  setInputValue('');
+                  setSearchText('');
                   resetPage();
                 }}
               />
             )}
             {selectedGenres.map((genre) => (
-              <ActiveFilterChip
-                key={genre}
-                label={genre}
-                onRemove={() => toggleGenre(genre)}
-              />
+              <ActiveFilterChip key={genre} label={genre} onRemove={() => toggleGenre(genre)} />
             ))}
-            {selectedSeason !== "any" && selectedSeasonLabel && (
+            {selectedSeason !== 'any' && selectedSeasonLabel && (
               <ActiveFilterChip
                 label={selectedSeasonLabel}
                 onRemove={() => {
-                  setSelectedSeason("any");
+                  setSelectedSeason('any');
                   resetPage();
                 }}
               />
             )}
-            {airing !== "any" && (
+            {airing !== 'any' && (
               <ActiveFilterChip
                 label={AIRING_OPTIONS.find((o) => o.value === airing)?.label ?? airing}
                 onRemove={() => {
-                  setAiring("any");
+                  setAiring('any');
                   resetPage();
                 }}
               />
@@ -652,7 +645,7 @@ export default function FilterBuilder({
             {hideWatched.map((tag) => (
               <ActiveFilterChip
                 key={tag}
-                label={`${watchlistMode === "hide" ? "Hide" : "Only"} ${tag}`}
+                label={`${watchlistMode === 'hide' ? 'Hide' : 'Only'} ${tag}`}
                 onRemove={() => toggleHideWatched(tag)}
               />
             ))}
@@ -664,7 +657,7 @@ export default function FilterBuilder({
         <div className="flex flex-wrap items-center gap-3">
           <p className="text-sm text-muted-foreground">
             {totalFiltered.toLocaleString()} titles
-            {isFetching && " · updating…"}
+            {isFetching && ' · updating…'}
           </p>
           {user && buildSearchOpts().filters.length > 0 && (
             <button
@@ -704,9 +697,7 @@ export default function FilterBuilder({
         </div>
       )}
 
-      {saveSearchMessage && (
-        <p className="text-xs text-muted-foreground">{saveSearchMessage}</p>
-      )}
+      {saveSearchMessage && <p className="text-xs text-muted-foreground">{saveSearchMessage}</p>}
 
       {error && (
         <div className="flex flex-wrap items-center gap-3 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3">
@@ -717,7 +708,7 @@ export default function FilterBuilder({
             disabled={isFetching}
             className="text-sm font-medium text-destructive underline-offset-2 hover:underline disabled:opacity-50"
           >
-            {isFetching ? "Retrying…" : "Retry"}
+            {isFetching ? 'Retrying…' : 'Retry'}
           </button>
         </div>
       )}
@@ -726,7 +717,7 @@ export default function FilterBuilder({
         {loading && !data ? (
           <ResultsGridSkeleton />
         ) : data ? (
-          <div className={cn("transition-opacity duration-300", isFetching && "opacity-50")}>
+          <div className={cn('transition-opacity duration-300', isFetching && 'opacity-50')}>
             <ResultsGrid results={data} />
 
             {totalPages > 1 && (
@@ -735,7 +726,7 @@ export default function FilterBuilder({
                   type="button"
                   onClick={() => {
                     setCurrentPage(currentPage - 1);
-                    window.scrollTo({ top: 0, behavior: "smooth" });
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
                   disabled={!hasPrev || isFetching}
                   className="text-sm font-medium text-muted-foreground hover:text-foreground disabled:opacity-40"
@@ -749,7 +740,7 @@ export default function FilterBuilder({
                   type="button"
                   onClick={() => {
                     setCurrentPage(currentPage + 1);
-                    window.scrollTo({ top: 0, behavior: "smooth" });
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
                   disabled={!hasNext || isFetching}
                   className="text-sm font-medium text-muted-foreground hover:text-foreground disabled:opacity-40"

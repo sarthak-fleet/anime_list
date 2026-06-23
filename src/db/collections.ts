@@ -1,4 +1,4 @@
-import { getDb } from "./client";
+import { getDb } from './client';
 
 export interface CollectionRow {
   id: string;
@@ -26,20 +26,20 @@ function slugify(value: string): string {
   return value
     .toLowerCase()
     .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
     .slice(0, 48);
 }
 
 async function uniqueSlug(base: string, excludeId?: string): Promise<string> {
   const db = getDb();
-  const root = slugify(base) || "collection";
+  const root = slugify(base) || 'collection';
   let candidate = root;
   let suffix = 1;
 
   while (true) {
     const result = await db.execute({
-      sql: `SELECT id FROM collections WHERE slug = ? ${excludeId ? "AND id != ?" : ""} LIMIT 1`,
+      sql: `SELECT id FROM collections WHERE slug = ? ${excludeId ? 'AND id != ?' : ''} LIMIT 1`,
       args: excludeId ? [candidate, excludeId] : [candidate],
     });
     if (result.rows.length === 0) return candidate;
@@ -72,15 +72,15 @@ export async function initCollectionTables(): Promise<void> {
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       UNIQUE(collection_id, mal_id, media_type)
     )`,
-    "CREATE INDEX IF NOT EXISTS idx_collections_user ON collections(user_id)",
-    "CREATE INDEX IF NOT EXISTS idx_collection_items_collection ON collection_items(collection_id)",
+    'CREATE INDEX IF NOT EXISTS idx_collections_user ON collections(user_id)',
+    'CREATE INDEX IF NOT EXISTS idx_collection_items_collection ON collection_items(collection_id)',
   ]);
 }
 
 export async function listUserCollections(userId: string): Promise<CollectionRow[]> {
   const db = getDb();
   const result = await db.execute({
-    sql: "SELECT * FROM collections WHERE user_id = ? ORDER BY updated_at DESC",
+    sql: 'SELECT * FROM collections WHERE user_id = ? ORDER BY updated_at DESC',
     args: [userId],
   });
   return result.rows as unknown as CollectionRow[];
@@ -88,13 +88,13 @@ export async function listUserCollections(userId: string): Promise<CollectionRow
 
 export async function getCollectionBySlug(
   slug: string,
-  options: { ownerId?: string; publicOnly?: boolean } = {},
+  options: { ownerId?: string; publicOnly?: boolean } = {}
 ): Promise<CollectionRow | null> {
   const db = getDb();
-  const clauses = ["slug = ?"];
+  const clauses = ['slug = ?'];
   const args: string[] = [slug];
   if (options.ownerId) {
-    clauses.push("user_id = ?");
+    clauses.push('user_id = ?');
     args.push(options.ownerId);
   }
   if (options.publicOnly) {
@@ -102,7 +102,7 @@ export async function getCollectionBySlug(
   }
 
   const result = await db.execute({
-    sql: `SELECT * FROM collections WHERE ${clauses.join(" AND ")} LIMIT 1`,
+    sql: `SELECT * FROM collections WHERE ${clauses.join(' AND ')} LIMIT 1`,
     args,
   });
   return result.rows.length ? (result.rows[0] as unknown as CollectionRow) : null;
@@ -111,7 +111,7 @@ export async function getCollectionBySlug(
 export async function getCollectionItems(collectionId: string): Promise<CollectionItemRow[]> {
   const db = getDb();
   const result = await db.execute({
-    sql: "SELECT * FROM collection_items WHERE collection_id = ? ORDER BY position ASC, created_at ASC",
+    sql: 'SELECT * FROM collection_items WHERE collection_id = ? ORDER BY position ASC, created_at ASC',
     args: [collectionId],
   });
   return result.rows as unknown as CollectionItemRow[];
@@ -124,7 +124,7 @@ export async function createCollection(
     description?: string;
     visibility?: string;
     items?: Array<{ mal_id: string; media_type?: string; note?: string }>;
-  },
+  }
 ): Promise<CollectionRow> {
   const db = getDb();
   const id = crypto.randomUUID();
@@ -137,8 +137,8 @@ export async function createCollection(
       userId,
       slug,
       input.title.trim(),
-      input.description?.trim() ?? "",
-      input.visibility ?? "public",
+      input.description?.trim() ?? '',
+      input.visibility ?? 'public',
     ],
   });
 
@@ -157,11 +157,11 @@ export async function updateCollection(
     description?: string;
     visibility?: string;
     items?: Array<{ mal_id: string; media_type?: string; note?: string }>;
-  },
+  }
 ): Promise<CollectionRow | null> {
   const db = getDb();
   const current = await db.execute({
-    sql: "SELECT * FROM collections WHERE id = ? AND user_id = ? LIMIT 1",
+    sql: 'SELECT * FROM collections WHERE id = ? AND user_id = ? LIMIT 1',
     args: [id, userId],
   });
   if (!current.rows.length) return null;
@@ -169,9 +169,7 @@ export async function updateCollection(
   const row = current.rows[0] as unknown as CollectionRow;
   const nextTitle = input.title?.trim() ?? row.title;
   const nextSlug =
-    input.title && input.title.trim() !== row.title
-      ? await uniqueSlug(nextTitle, id)
-      : row.slug;
+    input.title && input.title.trim() !== row.title ? await uniqueSlug(nextTitle, id) : row.slug;
 
   await db.execute({
     sql: `UPDATE collections
@@ -197,18 +195,18 @@ export async function updateCollection(
 export async function deleteCollection(userId: string, id: string): Promise<void> {
   const db = getDb();
   await db.batch([
-    { sql: "DELETE FROM collection_items WHERE collection_id = ?", args: [id] },
-    { sql: "DELETE FROM collections WHERE id = ? AND user_id = ?", args: [id, userId] },
+    { sql: 'DELETE FROM collection_items WHERE collection_id = ?', args: [id] },
+    { sql: 'DELETE FROM collections WHERE id = ? AND user_id = ?', args: [id, userId] },
   ]);
 }
 
 async function replaceCollectionItems(
   collectionId: string,
-  items: Array<{ mal_id: string; media_type?: string; note?: string }>,
+  items: Array<{ mal_id: string; media_type?: string; note?: string }>
 ): Promise<void> {
   const db = getDb();
   await db.execute({
-    sql: "DELETE FROM collection_items WHERE collection_id = ?",
+    sql: 'DELETE FROM collection_items WHERE collection_id = ?',
     args: [collectionId],
   });
 
@@ -219,7 +217,7 @@ async function replaceCollectionItems(
       crypto.randomUUID(),
       collectionId,
       item.mal_id,
-      item.media_type ?? "anime",
+      item.media_type ?? 'anime',
       index,
       item.note ?? null,
     ],

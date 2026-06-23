@@ -1,4 +1,4 @@
-import ScheduleView from "@/components/ScheduleView";
+import ScheduleView from '@/components/ScheduleView';
 
 export default function SchedulePage() {
   return (

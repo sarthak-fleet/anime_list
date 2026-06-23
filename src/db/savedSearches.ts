@@ -1,6 +1,6 @@
-import { filterAnimeList } from "../filterEngine";
-import type { Filter } from "../types/anime";
-import { getDb } from "./client";
+import { filterAnimeList } from '../filterEngine';
+import type { Filter } from '../types/anime';
+import { getDb } from './client';
 
 export interface SavedSearchRow {
   id: string;
@@ -52,9 +52,9 @@ export async function initSavedSearchTables(): Promise<void> {
       seen_at TEXT,
       UNIQUE(saved_search_id, mal_id, title_type)
     )`,
-    "CREATE INDEX IF NOT EXISTS idx_saved_searches_user ON saved_searches(user_id)",
-    "CREATE INDEX IF NOT EXISTS idx_saved_search_alerts_search ON saved_search_alerts(saved_search_id)",
-    "CREATE INDEX IF NOT EXISTS idx_saved_search_alerts_unseen ON saved_search_alerts(saved_search_id, seen_at)",
+    'CREATE INDEX IF NOT EXISTS idx_saved_searches_user ON saved_searches(user_id)',
+    'CREATE INDEX IF NOT EXISTS idx_saved_search_alerts_search ON saved_search_alerts(saved_search_id)',
+    'CREATE INDEX IF NOT EXISTS idx_saved_search_alerts_unseen ON saved_search_alerts(saved_search_id, seen_at)',
   ]);
 }
 
@@ -70,7 +70,7 @@ export async function listSavedSearches(userId: string): Promise<SavedSearchRow[
 export async function createSavedSearch(
   userId: string,
   name: string,
-  filters: Filter[],
+  filters: Filter[]
 ): Promise<SavedSearchRow> {
   const db = getDb();
   const id = crypto.randomUUID();
@@ -85,28 +85,28 @@ export async function createSavedSearch(
 export async function updateSavedSearch(
   userId: string,
   id: string,
-  updates: { name?: string; paused?: boolean; filters?: Filter[] },
+  updates: { name?: string; paused?: boolean; filters?: Filter[] }
 ): Promise<void> {
   const db = getDb();
   const sets: string[] = ["updated_at = datetime('now')"];
   const args: Array<string | number> = [];
 
   if (updates.name !== undefined) {
-    sets.push("name = ?");
+    sets.push('name = ?');
     args.push(updates.name.trim());
   }
   if (updates.paused !== undefined) {
-    sets.push("paused = ?");
+    sets.push('paused = ?');
     args.push(updates.paused ? 1 : 0);
   }
   if (updates.filters !== undefined) {
-    sets.push("filters_json = ?");
+    sets.push('filters_json = ?');
     args.push(JSON.stringify(updates.filters));
   }
 
   args.push(id, userId);
   await db.execute({
-    sql: `UPDATE saved_searches SET ${sets.join(", ")} WHERE id = ? AND user_id = ?`,
+    sql: `UPDATE saved_searches SET ${sets.join(', ')} WHERE id = ? AND user_id = ?`,
     args,
   });
 }
@@ -115,11 +115,11 @@ export async function deleteSavedSearch(userId: string, id: string): Promise<voi
   const db = getDb();
   await db.batch([
     {
-      sql: "DELETE FROM saved_search_alerts WHERE saved_search_id = ?",
+      sql: 'DELETE FROM saved_search_alerts WHERE saved_search_id = ?',
       args: [id],
     },
     {
-      sql: "DELETE FROM saved_searches WHERE id = ? AND user_id = ?",
+      sql: 'DELETE FROM saved_searches WHERE id = ? AND user_id = ?',
       args: [id, userId],
     },
   ]);
@@ -127,7 +127,7 @@ export async function deleteSavedSearch(userId: string, id: string): Promise<voi
 
 export async function listSavedSearchAlerts(
   userId: string,
-  options: { unseenOnly?: boolean } = {},
+  options: { unseenOnly?: boolean } = {}
 ): Promise<Array<SavedSearchAlertRow & { search_name: string }>> {
   const db = getDb();
   const result = await db.execute({
@@ -136,7 +136,7 @@ export async function listSavedSearchAlerts(
       FROM saved_search_alerts a
       JOIN saved_searches s ON s.id = a.saved_search_id
       WHERE s.user_id = ?
-      ${options.unseenOnly ? "AND a.seen_at IS NULL" : ""}
+      ${options.unseenOnly ? 'AND a.seen_at IS NULL' : ''}
       ORDER BY a.created_at DESC
       LIMIT 200
     `,
@@ -148,7 +148,7 @@ export async function listSavedSearchAlerts(
 export async function markSavedSearchAlertsSeen(userId: string, alertIds: string[]): Promise<void> {
   if (alertIds.length === 0) return;
   const db = getDb();
-  const placeholders = alertIds.map(() => "?").join(", ");
+  const placeholders = alertIds.map(() => '?').join(', ');
   await db.execute({
     sql: `
       UPDATE saved_search_alerts
@@ -163,14 +163,17 @@ export async function markSavedSearchAlertsSeen(userId: string, alertIds: string
 function summarizeFilters(filters: Filter[]): string {
   return filters
     .slice(0, 3)
-    .map((filter) => `${String(filter.field)} ${String(filter.action).replace(/_/g, " ").toLowerCase()} ${Array.isArray(filter.value) ? filter.value.join(", ") : filter.value}`)
-    .join(" · ");
+    .map(
+      (filter) =>
+        `${String(filter.field)} ${String(filter.action).replace(/_/g, ' ').toLowerCase()} ${Array.isArray(filter.value) ? filter.value.join(', ') : filter.value}`
+    )
+    .join(' · ');
 }
 
 export async function evaluateSavedSearchesAfterCatalogRefresh(): Promise<number> {
   const db = getDb();
   const searches = await db.execute({
-    sql: "SELECT * FROM saved_searches WHERE paused = 0",
+    sql: 'SELECT * FROM saved_searches WHERE paused = 0',
     args: [],
   });
 
@@ -186,7 +189,7 @@ export async function evaluateSavedSearchesAfterCatalogRefresh(): Promise<number
 
     const matches = await filterAnimeList(filters);
     const existing = await db.execute({
-      sql: "SELECT mal_id FROM saved_search_alerts WHERE saved_search_id = ?",
+      sql: 'SELECT mal_id FROM saved_search_alerts WHERE saved_search_id = ?',
       args: [row.id],
     });
     const knownIds = new Set(existing.rows.map((item) => String(item.mal_id)));

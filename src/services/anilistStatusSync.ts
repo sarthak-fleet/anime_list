@@ -1,11 +1,11 @@
-import type { AnimeItem } from "../types/anime";
+import type { AnimeItem } from '../types/anime';
 
 export type AniListMediaStatus =
-  | "FINISHED"
-  | "RELEASING"
-  | "NOT_YET_RELEASED"
-  | "CANCELLED"
-  | "HIATUS";
+  | 'FINISHED'
+  | 'RELEASING'
+  | 'NOT_YET_RELEASED'
+  | 'CANCELLED'
+  | 'HIATUS';
 
 export interface AniListStatusRecord {
   idMal: number;
@@ -29,16 +29,14 @@ export interface AnimeStatusChange {
 }
 
 const STATUS_MAP: Record<AniListMediaStatus, string> = {
-  FINISHED: "Finished Airing",
-  RELEASING: "Currently Airing",
-  NOT_YET_RELEASED: "Not yet aired",
-  CANCELLED: "Cancelled",
-  HIATUS: "Hiatus",
+  FINISHED: 'Finished Airing',
+  RELEASING: 'Currently Airing',
+  NOT_YET_RELEASED: 'Not yet aired',
+  CANCELLED: 'Cancelled',
+  HIATUS: 'Hiatus',
 };
 
-export function mapAniListStatus(
-  status?: AniListMediaStatus | null
-): string | undefined {
+export function mapAniListStatus(status?: AniListMediaStatus | null): string | undefined {
   if (!status) {
     return undefined;
   }

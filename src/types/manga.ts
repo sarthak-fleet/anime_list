@@ -1,4 +1,4 @@
-import { FilterAction } from "../config";
+import type { FilterAction } from '../config';
 
 export interface BaseMangaItem {
   mal_id: number;
@@ -39,41 +39,37 @@ export type RawMangaData = ({
 } & BaseMangaItem)[];
 
 export enum MangaField {
-  MalId = "mal_id",
-  Url = "url",
-  Title = "title",
-  TitleEnglish = "title_english",
-  Type = "type",
-  Chapters = "chapters",
-  Volumes = "volumes",
-  Published = "published",
-  Score = "score",
-  ScoredBy = "scored_by",
-  Rank = "rank",
-  Status = "status",
-  Popularity = "popularity",
-  Members = "members",
-  Favorites = "favorites",
-  Year = "year",
-  Synopsis = "synopsis",
-  Genres = "genres",
-  Themes = "themes",
-  Demographics = "demographics",
-  HasColored = "has_colored",
-  IsCompleted = "is_completed",
-  AvailableInEnglish = "available_in_english",
-  AvailableLanguages = "available_languages",
+  MalId = 'mal_id',
+  Url = 'url',
+  Title = 'title',
+  TitleEnglish = 'title_english',
+  Type = 'type',
+  Chapters = 'chapters',
+  Volumes = 'volumes',
+  Published = 'published',
+  Score = 'score',
+  ScoredBy = 'scored_by',
+  Rank = 'rank',
+  Status = 'status',
+  Popularity = 'popularity',
+  Members = 'members',
+  Favorites = 'favorites',
+  Year = 'year',
+  Synopsis = 'synopsis',
+  Genres = 'genres',
+  Themes = 'themes',
+  Demographics = 'demographics',
+  HasColored = 'has_colored',
+  IsCompleted = 'is_completed',
+  AvailableInEnglish = 'available_in_english',
+  AvailableLanguages = 'available_languages',
 }
 
-export interface MangaFilter<
-  T extends string | number | string[] = string | number | string[]
-> {
+export interface MangaFilter<T extends string | number | string[] = string | number | string[]> {
   field: MangaField;
   value: T;
   action: FilterAction;
-  score_multiplier?: T extends string[]
-    ? { [subCategory: string]: number }
-    : number;
+  score_multiplier?: T extends string[] ? { [subCategory: string]: number } : number;
 }
 
 export type MangaNumericField =
@@ -139,26 +135,18 @@ export const MANGA_BOOLEAN_FIELDS: MangaBooleanField[] = [
 ];
 
 // Type guards
-export const isMangaNumericField = (
-  field: MangaField
-): field is MangaNumericField => {
+export const isMangaNumericField = (field: MangaField): field is MangaNumericField => {
   return MANGA_NUMERIC_FIELDS.includes(field as MangaNumericField);
 };
 
-export const isMangaArrayField = (
-  field: MangaField
-): field is MangaArrayField => {
+export const isMangaArrayField = (field: MangaField): field is MangaArrayField => {
   return MANGA_ARRAY_FIELDS.includes(field as MangaArrayField);
 };
 
-export const isMangaStringField = (
-  field: MangaField
-): field is MangaStringField => {
+export const isMangaStringField = (field: MangaField): field is MangaStringField => {
   return MANGA_STRING_FIELDS.includes(field as MangaStringField);
 };
 
-export const isMangaBooleanField = (
-  field: MangaField
-): field is MangaBooleanField => {
+export const isMangaBooleanField = (field: MangaField): field is MangaBooleanField => {
   return MANGA_BOOLEAN_FIELDS.includes(field as MangaBooleanField);
 };

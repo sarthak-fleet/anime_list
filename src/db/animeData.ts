@@ -1,5 +1,5 @@
-import { getDb } from "./client";
-import { AnimeItem } from "../types/anime";
+import { getDb } from './client';
+import type { AnimeItem } from '../types/anime';
 
 const mapAnimeRow = (row: Record<string, unknown>): AnimeItem => ({
   mal_id: row.mal_id as number,
@@ -11,7 +11,7 @@ const mapAnimeRow = (row: Record<string, unknown>): AnimeItem => ({
   aired: row.aired_from
     ? {
         from: row.aired_from as string,
-        to: (row.aired_to as string) || "",
+        to: (row.aired_to as string) || '',
       }
     : undefined,
   score: (row.score as number) || undefined,
@@ -25,9 +25,9 @@ const mapAnimeRow = (row: Record<string, unknown>): AnimeItem => ({
   year: (row.year as number) || undefined,
   season: (row.season as string) || undefined,
   image: (row.image as string) || undefined,
-  genres: JSON.parse((row.genres as string) || "{}"),
-  themes: JSON.parse((row.themes as string) || "{}"),
-  demographics: JSON.parse((row.demographics as string) || "{}"),
+  genres: JSON.parse((row.genres as string) || '{}'),
+  themes: JSON.parse((row.themes as string) || '{}'),
+  demographics: JSON.parse((row.demographics as string) || '{}'),
 });
 
 /**
@@ -166,13 +166,11 @@ async function writeAnimeBatches(animeList: AnimeItem[]): Promise<void> {
   for (let i = 0; i < animeList.length; i += UPSERT_BATCH_SIZE) {
     const batch = animeList.slice(i, i + UPSERT_BATCH_SIZE);
     const statements = batch.map(buildAnimeUpsertStatement);
-    await db.batch(statements, "write");
+    await db.batch(statements, 'write');
   }
 }
 
-export async function upsertAnimeBatchNoSummary(
-  animeList: AnimeItem[]
-): Promise<void> {
+export async function upsertAnimeBatchNoSummary(animeList: AnimeItem[]): Promise<void> {
   await writeAnimeBatches(animeList);
   console.log(`Upserted ${animeList.length} anime`);
 }
@@ -190,7 +188,7 @@ export async function upsertAnimeBatch(animeList: AnimeItem[]): Promise<UpsertSu
 
   // Query which of the upserted rows were new inserts vs updates
   const malIds = animeList.map((a) => a.mal_id);
-  const placeholders = malIds.map(() => "?").join(",");
+  const placeholders = malIds.map(() => '?').join(',');
   const result = await db.execute({
     sql: `SELECT mal_id, title, title_english, created_at, updated_at
           FROM anime_data WHERE mal_id IN (${placeholders})`,
@@ -210,7 +208,9 @@ export async function upsertAnimeBatch(animeList: AnimeItem[]): Promise<UpsertSu
     }
   }
 
-  console.log(`Upserted ${animeList.length} anime (${summary.added.length} new, ${summary.updated.length} updated)`);
+  console.log(
+    `Upserted ${animeList.length} anime (${summary.added.length} new, ${summary.updated.length} updated)`
+  );
   return summary;
 }
 
@@ -219,7 +219,7 @@ export async function upsertAnimeBatch(animeList: AnimeItem[]): Promise<UpsertSu
  */
 export async function getAllAnime(): Promise<AnimeItem[]> {
   const db = getDb();
-  const result = await db.execute("SELECT * FROM anime_data");
+  const result = await db.execute('SELECT * FROM anime_data');
 
   return result.rows.map((row) => mapAnimeRow(row as unknown as Record<string, unknown>));
 }
@@ -227,7 +227,7 @@ export async function getAllAnime(): Promise<AnimeItem[]> {
 export async function getAnimeByMalId(malId: number): Promise<AnimeItem | null> {
   const db = getDb();
   const result = await db.execute({
-    sql: "SELECT * FROM anime_data WHERE mal_id = ? LIMIT 1",
+    sql: 'SELECT * FROM anime_data WHERE mal_id = ? LIMIT 1',
     args: [malId],
   });
 
@@ -243,7 +243,7 @@ export async function getAnimeByMalId(malId: number): Promise<AnimeItem | null> 
  */
 export async function getAnimeCount(): Promise<number> {
   const db = getDb();
-  const result = await db.execute("SELECT COUNT(*) as count FROM anime_data");
+  const result = await db.execute('SELECT COUNT(*) as count FROM anime_data');
   return result.rows[0].count as number;
 }
 
@@ -252,7 +252,7 @@ export async function getAnimeCount(): Promise<number> {
  */
 export async function getLastDataUpdate(): Promise<string | null> {
   const db = getDb();
-  const result = await db.execute("SELECT MAX(updated_at) as last_updated FROM anime_data");
+  const result = await db.execute('SELECT MAX(updated_at) as last_updated FROM anime_data');
   return (result.rows[0]?.last_updated as string) || null;
 }
 
@@ -260,7 +260,13 @@ export async function getLastDataUpdate(): Promise<string | null> {
  * Get recently added/updated anime grouped by date
  */
 export async function getRecentChanges(limit = 100): Promise<
-  { date: string; title: string; title_english: string | null; type: string | null; mal_id: number }[]
+  {
+    date: string;
+    title: string;
+    title_english: string | null;
+    type: string | null;
+    mal_id: number;
+  }[]
 > {
   const db = getDb();
   const result = await db.execute({

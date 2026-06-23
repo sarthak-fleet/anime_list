@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-import "dotenv/config";
-import fs from "fs";
-import path from "path";
-import { createClient } from "@libsql/client/web";
+import 'dotenv/config';
+import fs from 'node:fs';
+import path from 'node:path';
+import { createClient } from '@libsql/client/web';
 
 type WatchlistEntry = {
   id?: string;
@@ -14,31 +14,31 @@ type WatchlistFile = {
   manga?: Record<string, WatchlistEntry>;
 };
 
-const BRR_COLOR = "#8b5cf6";
-const DELAYING_COLOR = "#ef4444";
+const BRR_COLOR = '#8b5cf6';
+const DELAYING_COLOR = '#ef4444';
 
 const db = createClient({
   url: process.env.TURSO_DATABASE_URL!,
   authToken: process.env.TURSO_AUTH_TOKEN!,
 });
 
-const normalizeStatus = (status?: string): "BRR" | "Delaying" | null => {
+const normalizeStatus = (status?: string): 'BRR' | 'Delaying' | null => {
   if (!status) return null;
   const value = status.trim().toLowerCase();
-  if (value === "brr") return "BRR";
-  if (value === "avoiding" || value === "delaying") return "Delaying";
+  if (value === 'brr') return 'BRR';
+  if (value === 'avoiding' || value === 'delaying') return 'Delaying';
   return null;
 };
 
 async function ensureTag(userId: string, tag: string, color: string): Promise<string> {
   const existing = await db.execute({
-    sql: "SELECT id FROM user_tags WHERE user_id = ? AND lower(name) = lower(?) LIMIT 1",
+    sql: 'SELECT id FROM user_tags WHERE user_id = ? AND lower(name) = lower(?) LIMIT 1',
     args: [userId, tag],
   });
   if (existing.rows.length > 0) {
     const tagId = existing.rows[0].id as string;
     await db.execute({
-      sql: "UPDATE user_tags SET color = ? WHERE id = ?",
+      sql: 'UPDATE user_tags SET color = ? WHERE id = ?',
       args: [color, tagId],
     });
     return tagId;
@@ -46,7 +46,7 @@ async function ensureTag(userId: string, tag: string, color: string): Promise<st
 
   const tagId = crypto.randomUUID();
   await db.execute({
-    sql: "INSERT INTO user_tags (id, user_id, name, color) VALUES (?, ?, ?, ?)",
+    sql: 'INSERT INTO user_tags (id, user_id, name, color) VALUES (?, ?, ?, ?)',
     args: [tagId, userId, tag, color],
   });
   return tagId;
@@ -54,12 +54,16 @@ async function ensureTag(userId: string, tag: string, color: string): Promise<st
 
 function readWatchlistFile(filePath: string): WatchlistFile {
   const resolved = path.resolve(filePath);
-  const raw = fs.readFileSync(resolved, "utf8");
+  const raw = fs.readFileSync(resolved, 'utf8');
   return JSON.parse(raw) as WatchlistFile;
 }
 
-async function restoreAnime(userId: string, brrTagId: string, delayingTagId: string): Promise<void> {
-  const data = readWatchlistFile("user_watchedlist_data.json");
+async function restoreAnime(
+  userId: string,
+  brrTagId: string,
+  delayingTagId: string
+): Promise<void> {
+  const data = readWatchlistFile('user_watchedlist_data.json');
   const anime = data.anime || {};
 
   let requested = 0;
@@ -71,8 +75,8 @@ async function restoreAnime(userId: string, brrTagId: string, delayingTagId: str
     requested += 1;
 
     const result = await db.execute({
-      sql: "UPDATE anime_watchlist SET tag_id = ? WHERE user_id = ? AND mal_id = ?",
-      args: [target === "BRR" ? brrTagId : delayingTagId, userId, malId],
+      sql: 'UPDATE anime_watchlist SET tag_id = ? WHERE user_id = ? AND mal_id = ?',
+      args: [target === 'BRR' ? brrTagId : delayingTagId, userId, malId],
     });
     updated += Number(result.rowsAffected || 0);
   }
@@ -80,8 +84,12 @@ async function restoreAnime(userId: string, brrTagId: string, delayingTagId: str
   console.log(`anime restore requested=${requested} updated=${updated}`);
 }
 
-async function restoreManga(userId: string, brrTagId: string, delayingTagId: string): Promise<void> {
-  const data = readWatchlistFile("user_manga_watchedlist_data.json");
+async function restoreManga(
+  userId: string,
+  brrTagId: string,
+  delayingTagId: string
+): Promise<void> {
+  const data = readWatchlistFile('user_manga_watchedlist_data.json');
   const manga = data.manga || {};
 
   let requested = 0;
@@ -93,8 +101,8 @@ async function restoreManga(userId: string, brrTagId: string, delayingTagId: str
     requested += 1;
 
     const result = await db.execute({
-      sql: "UPDATE manga_watchlist SET tag_id = ? WHERE user_id = ? AND mal_id = ?",
-      args: [target === "BRR" ? brrTagId : delayingTagId, userId, malId],
+      sql: 'UPDATE manga_watchlist SET tag_id = ? WHERE user_id = ? AND mal_id = ?',
+      args: [target === 'BRR' ? brrTagId : delayingTagId, userId, malId],
     });
     updated += Number(result.rowsAffected || 0);
   }
@@ -116,21 +124,21 @@ async function printTagCounts(userId: string): Promise<void> {
     `,
     args: [userId],
   });
-  console.log("anime tag counts:", counts.rows);
+  console.log('anime tag counts:', counts.rows);
 }
 
 async function main(): Promise<void> {
-  const userResult = await db.execute("SELECT id, email FROM users LIMIT 1");
+  const userResult = await db.execute('SELECT id, email FROM users LIMIT 1');
   if (userResult.rows.length === 0) {
-    throw new Error("No user found in users table");
+    throw new Error('No user found in users table');
   }
 
   const userId = userResult.rows[0].id as string;
   const email = userResult.rows[0].email as string;
   console.log(`restoring for user=${email} id=${userId}`);
 
-  const brrTagId = await ensureTag(userId, "BRR", BRR_COLOR);
-  const delayingTagId = await ensureTag(userId, "Delaying", DELAYING_COLOR);
+  const brrTagId = await ensureTag(userId, 'BRR', BRR_COLOR);
+  const delayingTagId = await ensureTag(userId, 'Delaying', DELAYING_COLOR);
   console.log(`ensured tags: BRR=${brrTagId}, Delaying=${delayingTagId}`);
 
   await restoreAnime(userId, brrTagId, delayingTagId);
@@ -142,4 +150,3 @@ main().catch((error) => {
   console.error(error);
   process.exit(1);
 });
-

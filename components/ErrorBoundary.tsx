@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import React from "react";
-import { Button } from "@/components/ui/button";
-import { capturePageCrash } from "@/lib/foundry-monitoring";
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import { capturePageCrash } from '@/lib/foundry-monitoring';
 
 interface Props {
   children: React.ReactNode;
@@ -23,7 +23,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
   }
 
   override componentDidCatch(error: Error): void {
-    capturePageCrash(error, "manual");
+    capturePageCrash(error, 'manual');
   }
 
   override render() {
@@ -31,7 +31,9 @@ export class ErrorBoundary extends React.Component<Props, State> {
       return (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <h3 className="text-lg font-medium text-foreground mb-2">Something went wrong</h3>
-          <p className="text-sm text-muted-foreground mb-4">An unexpected error occurred while loading results.</p>
+          <p className="text-sm text-muted-foreground mb-4">
+            An unexpected error occurred while loading results.
+          </p>
           <Button variant="outline" onClick={() => this.setState({ hasError: false })}>
             Try again
           </Button>

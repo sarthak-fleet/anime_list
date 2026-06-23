@@ -20,8 +20,8 @@ import type {
   EnrichedMangaWatchlistResponse,
   MangaDetailResponse,
   DiscoveryQueueResponse,
-} from "./types";
-import { getApiUrl } from "./apiConfig";
+} from './types';
+import { getApiUrl } from './apiConfig';
 
 const API_URL = getApiUrl();
 const BASE = `${API_URL}/api`;
@@ -32,14 +32,10 @@ const SEARCH_REQUEST_TIMEOUT_MS = 12_000;
 // `credentials: "include"` on every request so the cookie ships along.
 // No more reading tokens from localStorage (XSS hardening).
 function withCreds(init: RequestInit = {}): RequestInit {
-  return { ...init, credentials: "include" };
+  return { ...init, credentials: 'include' };
 }
 
-async function fetchJson<T>(
-  url: string,
-  init?: RequestInit,
-  timeoutMs?: number,
-): Promise<T> {
+async function fetchJson<T>(url: string, init?: RequestInit, timeoutMs?: number): Promise<T> {
   const controller = timeoutMs ? new AbortController() : null;
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
@@ -47,7 +43,7 @@ async function fetchJson<T>(
     if (init.signal.aborted) {
       controller.abort();
     } else {
-      init.signal.addEventListener("abort", () => controller.abort(), { once: true });
+      init.signal.addEventListener('abort', () => controller.abort(), { once: true });
     }
   }
 
@@ -58,25 +54,25 @@ async function fetchJson<T>(
   try {
     const res = await fetch(
       url,
-      withCreds(controller ? { ...init, signal: controller.signal } : init),
+      withCreds(controller ? { ...init, signal: controller.signal } : init)
     );
 
     if (res.status === 401) {
-      if (typeof window !== "undefined") {
+      if (typeof window !== 'undefined') {
         // Profile cache only — the cookie is the source of truth and the
         // server has already rejected it. Tell the app to drop user state.
-        localStorage.removeItem("mal_profile");
+        localStorage.removeItem('mal_profile');
         // Best-effort: also clear any leftover legacy entry.
-        localStorage.removeItem("mal_auth");
-        window.dispatchEvent(new Event("mal_auth_expired"));
+        localStorage.removeItem('mal_auth');
+        window.dispatchEvent(new Event('mal_auth_expired'));
       }
-      throw new Error("Session expired. Please sign in again.");
+      throw new Error('Session expired. Please sign in again.');
     }
     if (!res.ok) throw new Error(`API error: ${res.status}`);
     return res.json();
   } catch (error) {
-    if (error instanceof DOMException && error.name === "AbortError") {
-      throw new Error("Search service timed out. Please try again.");
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new Error('Search service timed out. Please try again.');
     }
     throw error;
   } finally {
@@ -84,7 +80,7 @@ async function fetchJson<T>(
   }
 }
 
-const jsonHeaders = { "Content-Type": "application/json" } as const;
+const jsonHeaders = { 'Content-Type': 'application/json' } as const;
 
 export function getFields(): Promise<FieldOptions> {
   return fetchJson(`${BASE}/fields`);
@@ -100,7 +96,7 @@ export function searchAnime(
     pagesize?: number;
     offset?: number;
     sortBy?: string;
-    airing?: "yes" | "no" | "any";
+    airing?: 'yes' | 'no' | 'any';
     hideWatched?: string[];
     includeWatched?: string[];
   } = {}
@@ -108,35 +104,34 @@ export function searchAnime(
   return fetchJson(
     `${BASE}/search`,
     {
-      method: "POST",
+      method: 'POST',
       headers: jsonHeaders,
       body: JSON.stringify({
         filters,
         pagesize: opts.pagesize ?? DEFAULT_PAGE_SIZE,
         offset: opts.offset ?? 0,
         sortBy: opts.sortBy,
-        airing: opts.airing ?? "any",
+        airing: opts.airing ?? 'any',
         hideWatched: opts.hideWatched ?? [],
         includeWatched: opts.includeWatched ?? [],
       }),
     },
-    SEARCH_REQUEST_TIMEOUT_MS,
+    SEARCH_REQUEST_TIMEOUT_MS
   );
 }
 
-export function getStats(opts: {
-  hideWatched?: string[];
-  includeWatched?: string[];
-} = {}): Promise<AnimeStats> {
+export function getStats(
+  opts: { hideWatched?: string[]; includeWatched?: string[] } = {}
+): Promise<AnimeStats> {
   const params = new URLSearchParams();
   if (opts.hideWatched && opts.hideWatched.length > 0) {
-    params.set("hideWatched", opts.hideWatched.join(","));
+    params.set('hideWatched', opts.hideWatched.join(','));
   }
   if (opts.includeWatched && opts.includeWatched.length > 0) {
-    params.set("includeWatched", opts.includeWatched.join(","));
+    params.set('includeWatched', opts.includeWatched.join(','));
   }
   const query = params.toString();
-  const suffix = query ? `?${query}` : "";
+  const suffix = query ? `?${query}` : '';
   return fetchJson(`${BASE}/stats${suffix}`);
 }
 
@@ -152,10 +147,10 @@ export function getAnimeDetail(malId: number | string): Promise<AnimeDetailRespo
 export function addToWatchlist(
   malIds: number[],
   status: string,
-  tagColor?: string,
+  tagColor?: string
 ): Promise<{ success: boolean; message: string }> {
   return fetchJson(`${BASE}/watched/add`, {
-    method: "POST",
+    method: 'POST',
     headers: jsonHeaders,
     body: JSON.stringify({ mal_ids: malIds, status, tagColor }),
   });
@@ -165,7 +160,7 @@ export function removeFromWatchlist(
   malIds: number[]
 ): Promise<{ success: boolean; message: string }> {
   return fetchJson(`${BASE}/watched/remove`, {
-    method: "POST",
+    method: 'POST',
     headers: jsonHeaders,
     body: JSON.stringify({ mal_ids: malIds }),
   });
@@ -180,23 +175,23 @@ export function getTasteRecommendations(): Promise<TasteRecommendationsResponse>
 }
 
 export function previewWatchlistImport(
-  source: "mal" | "anilist" | "shelf",
-  payload: string,
+  source: 'mal' | 'anilist' | 'shelf',
+  payload: string
 ): Promise<WatchlistImportPreview> {
   return fetchJson(`${BASE}/watchlist/import/preview`, {
-    method: "POST",
+    method: 'POST',
     headers: jsonHeaders,
     body: JSON.stringify({ source, payload }),
   });
 }
 
 export function applyWatchlistImport(
-  source: "mal" | "anilist" | "shelf",
+  source: 'mal' | 'anilist' | 'shelf',
   payload: string,
-  mode: "merge" | "replace" | "skip" = "merge",
+  mode: 'merge' | 'replace' | 'skip' = 'merge'
 ): Promise<WatchlistImportPreview> {
   return fetchJson(`${BASE}/watchlist/import/apply`, {
-    method: "POST",
+    method: 'POST',
     headers: jsonHeaders,
     body: JSON.stringify({ source, payload, mode }),
   });
@@ -212,12 +207,12 @@ export function exportShelfWatchlistJson(): Promise<{ version: number; anime: un
 
 export async function downloadShelfWatchlistCsv(): Promise<void> {
   const response = await fetch(`${BASE}/watchlist/export/csv`, withCreds());
-  if (!response.ok) throw new Error("Export failed");
+  if (!response.ok) throw new Error('Export failed');
   const blob = await response.blob();
   const url = URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
+  const anchor = document.createElement('a');
   anchor.href = url;
-  anchor.download = "shelf-watchlist.csv";
+  anchor.download = 'shelf-watchlist.csv';
   anchor.click();
   URL.revokeObjectURL(url);
 }
@@ -226,9 +221,12 @@ export function listSavedSearches(): Promise<{ searches: SavedSearch[]; unseenCo
   return fetchJson(`${BASE}/saved-searches`);
 }
 
-export function createSavedSearch(name: string, filters: SearchFilter[]): Promise<{ search: SavedSearch }> {
+export function createSavedSearch(
+  name: string,
+  filters: SearchFilter[]
+): Promise<{ search: SavedSearch }> {
   return fetchJson(`${BASE}/saved-searches`, {
-    method: "POST",
+    method: 'POST',
     headers: jsonHeaders,
     body: JSON.stringify({ name, filters }),
   });
@@ -236,10 +234,10 @@ export function createSavedSearch(name: string, filters: SearchFilter[]): Promis
 
 export function updateSavedSearch(
   id: string,
-  payload: { name?: string; paused?: boolean; filters?: SearchFilter[] },
+  payload: { name?: string; paused?: boolean; filters?: SearchFilter[] }
 ): Promise<{ success: boolean }> {
   return fetchJson(`${BASE}/saved-searches/${id}/update`, {
-    method: "POST",
+    method: 'POST',
     headers: jsonHeaders,
     body: JSON.stringify(payload),
   });
@@ -247,20 +245,20 @@ export function updateSavedSearch(
 
 export function deleteSavedSearch(id: string): Promise<{ success: boolean }> {
   return fetchJson(`${BASE}/saved-searches/${id}/delete`, {
-    method: "POST",
+    method: 'POST',
     headers: jsonHeaders,
     body: JSON.stringify({}),
   });
 }
 
 export function listSavedSearchAlerts(unseenOnly = false): Promise<{ alerts: SavedSearchAlert[] }> {
-  const query = unseenOnly ? "?unseen=1" : "";
+  const query = unseenOnly ? '?unseen=1' : '';
   return fetchJson(`${BASE}/saved-searches/alerts${query}`);
 }
 
 export function markSavedSearchAlertsSeen(alertIds: string[]): Promise<{ success: boolean }> {
   return fetchJson(`${BASE}/saved-searches/alerts/seen`, {
-    method: "POST",
+    method: 'POST',
     headers: jsonHeaders,
     body: JSON.stringify({ alert_ids: alertIds }),
   });
@@ -273,11 +271,11 @@ export function listMyCollections(): Promise<{ collections: CollectionSummary[] 
 export function createCollection(payload: {
   title: string;
   description?: string;
-  visibility?: "public" | "private";
+  visibility?: 'public' | 'private';
   items?: Array<{ mal_id: string; media_type?: string; note?: string }>;
 }): Promise<{ collection: CollectionSummary }> {
   return fetchJson(`${BASE}/collections`, {
-    method: "POST",
+    method: 'POST',
     headers: jsonHeaders,
     body: JSON.stringify(payload),
   });
@@ -288,12 +286,12 @@ export function updateCollection(
   payload: {
     title?: string;
     description?: string;
-    visibility?: "public" | "private";
+    visibility?: 'public' | 'private';
     items?: Array<{ mal_id: string; media_type?: string; note?: string }>;
-  },
+  }
 ): Promise<{ collection: CollectionSummary }> {
   return fetchJson(`${BASE}/collections/${id}/update`, {
-    method: "POST",
+    method: 'POST',
     headers: jsonHeaders,
     body: JSON.stringify(payload),
   });
@@ -301,22 +299,24 @@ export function updateCollection(
 
 export function deleteCollection(id: string): Promise<{ success: boolean }> {
   return fetchJson(`${BASE}/collections/${id}/delete`, {
-    method: "POST",
+    method: 'POST',
     headers: jsonHeaders,
     body: JSON.stringify({}),
   });
 }
 
-export function getPublicCollection(slug: string): Promise<{ collection: CollectionSummary; items: CollectionItem[] }> {
+export function getPublicCollection(
+  slug: string
+): Promise<{ collection: CollectionSummary; items: CollectionItem[] }> {
   return fetchJson(`${BASE}/collections/${slug}`);
 }
 
 export function updateAnimeNote(
   malId: number | string,
-  note: string,
+  note: string
 ): Promise<{ success: boolean; note: string }> {
   return fetchJson(`${BASE}/anime/${malId}/note`, {
-    method: "POST",
+    method: 'POST',
     headers: jsonHeaders,
     body: JSON.stringify({ note }),
   });
@@ -328,10 +328,10 @@ export function getWatchlistTags(): Promise<{ tags: WatchlistTag[] }> {
 
 export function saveWatchlistTag(
   tag: string,
-  color?: string,
+  color?: string
 ): Promise<{ success: boolean; message: string }> {
   return fetchJson(`${BASE}/watchlist/tags`, {
-    method: "POST",
+    method: 'POST',
     headers: jsonHeaders,
     body: JSON.stringify({ tag, color }),
   });
@@ -339,10 +339,10 @@ export function saveWatchlistTag(
 
 export function updateWatchlistTag(
   tagId: string,
-  payload: { tag?: string; color?: string },
+  payload: { tag?: string; color?: string }
 ): Promise<{ success: boolean; message: string }> {
   return fetchJson(`${BASE}/watchlist/tags/${tagId}/update`, {
-    method: "POST",
+    method: 'POST',
     headers: jsonHeaders,
     body: JSON.stringify(payload),
   });
@@ -350,10 +350,10 @@ export function updateWatchlistTag(
 
 export function deleteWatchlistTag(
   tagId: string,
-  moveToTagId?: string,
+  moveToTagId?: string
 ): Promise<{ success: boolean; message: string }> {
   return fetchJson(`${BASE}/watchlist/tags/${tagId}/delete`, {
-    method: "POST",
+    method: 'POST',
     headers: jsonHeaders,
     body: JSON.stringify({ moveToTagId }),
   });
@@ -367,10 +367,10 @@ export function getScheduleTimeline(): Promise<ScheduleTimelineResponse> {
 
 export function addToSchedule(
   malIds: number[],
-  episodesPerDay: number = 3,
+  episodesPerDay: number = 3
 ): Promise<{ success: boolean; message: string }> {
   return fetchJson(`${BASE}/schedule/add`, {
-    method: "POST",
+    method: 'POST',
     headers: jsonHeaders,
     body: JSON.stringify({ mal_ids: malIds, episodes_per_day: episodesPerDay }),
   });
@@ -378,30 +378,28 @@ export function addToSchedule(
 
 export function updateScheduleItem(
   malId: string,
-  payload: { episodes_watched?: number; episodes_per_day?: number },
+  payload: { episodes_watched?: number; episodes_per_day?: number }
 ): Promise<{ success: boolean; message: string }> {
   return fetchJson(`${BASE}/schedule/${malId}/update`, {
-    method: "POST",
+    method: 'POST',
     headers: jsonHeaders,
     body: JSON.stringify(payload),
   });
 }
 
 export function removeFromSchedule(
-  malIds: number[],
+  malIds: number[]
 ): Promise<{ success: boolean; message: string }> {
   return fetchJson(`${BASE}/schedule/remove`, {
-    method: "POST",
+    method: 'POST',
     headers: jsonHeaders,
     body: JSON.stringify({ mal_ids: malIds }),
   });
 }
 
-export function reorderSchedule(
-  malIds: string[],
-): Promise<{ success: boolean; message: string }> {
+export function reorderSchedule(malIds: string[]): Promise<{ success: boolean; message: string }> {
   return fetchJson(`${BASE}/schedule/reorder`, {
-    method: "POST",
+    method: 'POST',
     headers: jsonHeaders,
     body: JSON.stringify({ mal_ids: malIds }),
   });
@@ -439,10 +437,10 @@ export function getRandomAnimePick(options?: {
   limit?: number;
 }): Promise<{ results: RandomAnimePick[] }> {
   const params = new URLSearchParams();
-  if (options?.genre) params.set("genre", options.genre);
-  if (options?.limit != null) params.set("limit", String(options.limit));
+  if (options?.genre) params.set('genre', options.genre);
+  if (options?.limit != null) params.set('limit', String(options.limit));
   const query = params.toString();
-  return fetchJson(`${BASE}/anime/random${query ? `?${query}` : ""}`);
+  return fetchJson(`${BASE}/anime/random${query ? `?${query}` : ''}`);
 }
 
 const MANGA_BASE = `${BASE}/manga`;
@@ -462,10 +460,10 @@ export function searchManga(
     offset?: number;
     sortBy?: string;
     hideWatched?: string[];
-  } = {},
+  } = {}
 ): Promise<SearchResponse> {
   return fetchJson(`${MANGA_BASE}/search`, {
-    method: "POST",
+    method: 'POST',
     headers: jsonHeaders,
     body: JSON.stringify({
       filters,
@@ -480,10 +478,10 @@ export function searchManga(
 export function getMangaStats(opts: { hideWatched?: string[] } = {}): Promise<AnimeStats> {
   const params = new URLSearchParams();
   if (opts.hideWatched && opts.hideWatched.length > 0) {
-    params.set("hideWatched", opts.hideWatched.join(","));
+    params.set('hideWatched', opts.hideWatched.join(','));
   }
   const query = params.toString();
-  return fetchJson(`${MANGA_BASE}/stats${query ? `?${query}` : ""}`);
+  return fetchJson(`${MANGA_BASE}/stats${query ? `?${query}` : ''}`);
 }
 
 export function getMangaWatchlist(): Promise<MangaWatchlistData> {
@@ -497,20 +495,20 @@ export function getEnrichedMangaWatchlist(): Promise<EnrichedMangaWatchlistRespo
 export function addToMangaWatchlist(
   malIds: number[],
   status: string,
-  tagColor?: string,
+  tagColor?: string
 ): Promise<{ success: boolean; message: string }> {
   return fetchJson(`${MANGA_BASE}/watched/add`, {
-    method: "POST",
+    method: 'POST',
     headers: jsonHeaders,
     body: JSON.stringify({ mal_ids: malIds, status, tagColor }),
   });
 }
 
 export function removeFromMangaWatchlist(
-  malIds: number[],
+  malIds: number[]
 ): Promise<{ success: boolean; message: string }> {
   return fetchJson(`${MANGA_BASE}/watched/remove`, {
-    method: "POST",
+    method: 'POST',
     headers: jsonHeaders,
     body: JSON.stringify({ mal_ids: malIds }),
   });
@@ -525,20 +523,20 @@ export function getRandomMangaPick(options?: {
   limit?: number;
 }): Promise<{ results: RandomAnimePick[] }> {
   const params = new URLSearchParams();
-  if (options?.genre) params.set("genre", options.genre);
-  if (options?.limit != null) params.set("limit", String(options.limit));
+  if (options?.genre) params.set('genre', options.genre);
+  if (options?.limit != null) params.set('limit', String(options.limit));
   const query = params.toString();
-  return fetchJson(`${MANGA_BASE}/random${query ? `?${query}` : ""}`);
+  return fetchJson(`${MANGA_BASE}/random${query ? `?${query}` : ''}`);
 }
 export function getDiscoveryQueue(limit = 50): Promise<DiscoveryQueueResponse> {
   return fetchJson(`${BASE}/discover/queue?limit=${limit}`);
 }
 
 export function dismissDiscoveryItems(
-  malIds: (string | number)[],
+  malIds: (string | number)[]
 ): Promise<{ success: boolean; message: string }> {
   return fetchJson(`${BASE}/discover/dismiss`, {
-    method: "POST",
+    method: 'POST',
     headers: jsonHeaders,
     body: JSON.stringify({ mal_ids: malIds }),
   });

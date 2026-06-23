@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import type { SearchResponse } from "@/lib/types";
-import AnimeCard from "./AnimeCard";
+import type { SearchResponse } from '@/lib/types';
+import AnimeCard from './AnimeCard';
 
 function CardSkeleton() {
   return (
@@ -26,7 +26,9 @@ export function ResultsGridSkeleton() {
     <div className="rounded-2xl border border-border bg-card/45 p-4 md:p-5">
       <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-primary">Building your shelf</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-primary">
+            Building your shelf
+          </p>
           <h2 className="mt-1 text-xl font-semibold text-foreground">Finding strong matches</h2>
         </div>
         <p className="max-w-sm text-sm text-muted-foreground">
@@ -55,7 +57,8 @@ export default function ResultsGrid({ results }: { results: SearchResponse }) {
         <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-muted/20 py-24 text-center">
           <p className="text-lg font-medium text-foreground">No titles match</p>
           <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-            Try clearing a filter, lowering the popularity threshold, or searching with a different title.
+            Try clearing a filter, lowering the popularity threshold, or searching with a different
+            title.
           </p>
         </div>
       )}

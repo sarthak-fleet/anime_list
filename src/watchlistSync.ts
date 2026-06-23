@@ -1,11 +1,6 @@
-import type { WatchedAnime } from "./types/watchlist";
+import type { WatchedAnime } from './types/watchlist';
 
-export type ExternalWatchStatus =
-  | "Watching"
-  | "Completed"
-  | "Deferred"
-  | "Avoiding"
-  | "BRR";
+export type ExternalWatchStatus = 'Watching' | 'Completed' | 'Deferred' | 'Avoiding' | 'BRR';
 
 export interface ExternalWatchlistEntry {
   malId: string;
@@ -16,8 +11,8 @@ export interface ExternalWatchlistEntry {
   note?: string;
 }
 
-export type WatchlistImportSource = "mal" | "anilist" | "shelf";
-export type WatchlistImportMode = "merge" | "replace" | "skip";
+export type WatchlistImportSource = 'mal' | 'anilist' | 'shelf';
+export type WatchlistImportMode = 'merge' | 'replace' | 'skip';
 
 export interface WatchlistImportConflict {
   malId: string;
@@ -40,57 +35,54 @@ export type WatchlistImportParseResult =
   | { ok: false; error: string };
 
 const MAL_STATUS_MAP: Record<string, ExternalWatchStatus> = {
-  watching: "Watching",
-  completed: "Completed",
-  "on-hold": "Deferred",
-  dropped: "Avoiding",
-  "plan to watch": "BRR",
-  "plan-to-watch": "BRR",
+  watching: 'Watching',
+  completed: 'Completed',
+  'on-hold': 'Deferred',
+  dropped: 'Avoiding',
+  'plan to watch': 'BRR',
+  'plan-to-watch': 'BRR',
 };
 
 const ANILIST_STATUS_MAP: Record<string, ExternalWatchStatus> = {
-  CURRENT: "Watching",
-  COMPLETED: "Completed",
-  PAUSED: "Deferred",
-  DROPPED: "Avoiding",
-  PLANNING: "BRR",
-  REPEATING: "Watching",
+  CURRENT: 'Watching',
+  COMPLETED: 'Completed',
+  PAUSED: 'Deferred',
+  DROPPED: 'Avoiding',
+  PLANNING: 'BRR',
+  REPEATING: 'Watching',
 };
 
 const ANILIST_EXPORT_STATUS_MAP: Record<string, string> = {
-  watching: "CURRENT",
-  completed: "COMPLETED",
-  done: "COMPLETED",
-  deferred: "PAUSED",
-  avoiding: "DROPPED",
-  brr: "PLANNING",
+  watching: 'CURRENT',
+  completed: 'COMPLETED',
+  done: 'COMPLETED',
+  deferred: 'PAUSED',
+  avoiding: 'DROPPED',
+  brr: 'PLANNING',
 };
 
 function decodeXmlText(value: string) {
   return value
-    .replaceAll("&amp;", "&")
-    .replaceAll("&lt;", "<")
-    .replaceAll("&gt;", ">")
-    .replaceAll("&quot;", "\"")
-    .replaceAll("&apos;", "'");
+    .replaceAll('&amp;', '&')
+    .replaceAll('&lt;', '<')
+    .replaceAll('&gt;', '>')
+    .replaceAll('&quot;', '"')
+    .replaceAll('&apos;', "'");
 }
 
 function readXmlTag(block: string, tag: string) {
-  const match = block.match(new RegExp(`<${tag}>([\\s\\S]*?)<\\/${tag}>`, "i"));
-  return match ? decodeXmlText(match[1].trim()) : "";
+  const match = block.match(new RegExp(`<${tag}>([\\s\\S]*?)<\\/${tag}>`, 'i'));
+  return match ? decodeXmlText(match[1].trim()) : '';
 }
 
-function normalizeStatus(
-  source: "mal" | "anilist",
-  value: unknown,
-): ExternalWatchStatus | null {
-  if (typeof value !== "string") return null;
-  const key = source === "mal" ? value.trim().toLowerCase() : value.trim().toUpperCase();
-  return source === "mal" ? MAL_STATUS_MAP[key] ?? null : ANILIST_STATUS_MAP[key] ?? null;
+function normalizeStatus(source: 'mal' | 'anilist', value: unknown): ExternalWatchStatus | null {
+  if (typeof value !== 'string') return null;
+  const key = source === 'mal' ? value.trim().toLowerCase() : value.trim().toUpperCase();
+  return source === 'mal' ? (MAL_STATUS_MAP[key] ?? null) : (ANILIST_STATUS_MAP[key] ?? null);
 }
 
 function toPositiveNumber(value: unknown) {
-  const number = typeof value === "number" ? value : Number(value);
+  const number = typeof value === 'number' ? value : Number(value);
   return Number.isFinite(number) && number > 0 ? number : undefined;
 }
 
@@ -98,7 +90,7 @@ function summarize(
   source: WatchlistImportSource,
   entries: ExternalWatchlistEntry[],
   skipped: number,
-  existing: Record<string, WatchedAnime> = {},
+  existing: Record<string, WatchedAnime> = {}
 ): WatchlistImportPreview {
   const statusCounts: Record<string, number> = {};
   const conflicts: WatchlistImportConflict[] = [];
@@ -143,7 +135,7 @@ export function parseShelfJson(rawJson: string): WatchlistImportPreview {
 
   for (const row of parsed.anime ?? []) {
     const malId = (row.mal_id ?? row.id)?.toString();
-    const statusRaw = (row.status ?? "").trim();
+    const statusRaw = (row.status ?? '').trim();
     if (!malId || !statusRaw) {
       skipped += 1;
       continue;
@@ -158,14 +150,14 @@ export function parseShelfJson(rawJson: string): WatchlistImportPreview {
     });
   }
 
-  return summarize("shelf", entries, skipped);
+  return summarize('shelf', entries, skipped);
 }
 
 export function safeParseShelfJson(rawJson: string): WatchlistImportParseResult {
   try {
     return { ok: true, preview: parseShelfJson(rawJson) };
   } catch {
-    return { ok: false, error: "Invalid Shelf JSON backup" };
+    return { ok: false, error: 'Invalid Shelf JSON backup' };
   }
 }
 
@@ -185,19 +177,19 @@ export function buildShelfJsonExport(watchlist: Record<string, WatchedAnime>) {
 }
 
 export function buildShelfCsvExport(watchlist: Record<string, WatchedAnime>): string {
-  const header = "mal_id,title,status,type,episodes,note";
+  const header = 'mal_id,title,status,type,episodes,note';
   const rows = Object.values(watchlist).map((entry) => {
     const cells = [
       entry.id,
-      entry.title ?? "",
+      entry.title ?? '',
       entry.status,
-      entry.type ?? "",
-      entry.episodes?.toString() ?? "",
-      entry.note ?? "",
+      entry.type ?? '',
+      entry.episodes?.toString() ?? '',
+      entry.note ?? '',
     ].map((cell) => `"${String(cell).replaceAll('"', '""')}"`);
-    return cells.join(",");
+    return cells.join(',');
   });
-  return [header, ...rows].join("\n");
+  return [header, ...rows].join('\n');
 }
 
 export function parseMalCsv(csv: string): WatchlistImportPreview {
@@ -206,15 +198,16 @@ export function parseMalCsv(csv: string): WatchlistImportPreview {
   let skipped = 0;
 
   for (const [index, line] of lines.entries()) {
-    if (index === 0 && line.toLowerCase().includes("mal_id")) continue;
+    if (index === 0 && line.toLowerCase().includes('mal_id')) continue;
     if (!line.trim()) continue;
 
-    const cells = line.match(/("([^"]|"")*"|[^,]+)/g)?.map((cell) =>
-      cell.replace(/^"|"$/g, "").replaceAll('""', '"').trim(),
-    ) ?? [];
+    const cells =
+      line
+        .match(/("([^"]|"")*"|[^,]+)/g)
+        ?.map((cell) => cell.replace(/^"|"$/g, '').replaceAll('""', '"').trim()) ?? [];
 
     const [malId, title, statusRaw, type, episodesRaw, note] = cells;
-    const status = normalizeStatus("mal", statusRaw ?? "");
+    const status = normalizeStatus('mal', statusRaw ?? '');
     if (!malId || !status) {
       skipped += 1;
       continue;
@@ -230,12 +223,12 @@ export function parseMalCsv(csv: string): WatchlistImportPreview {
     });
   }
 
-  return summarize("mal", entries, skipped);
+  return summarize('mal', entries, skipped);
 }
 
 export function withImportConflicts(
   preview: WatchlistImportPreview,
-  existing: Record<string, WatchedAnime>,
+  existing: Record<string, WatchedAnime>
 ): WatchlistImportPreview {
   return summarize(preview.source, preview.entries, preview.skipped, existing);
 }
@@ -243,16 +236,14 @@ export function withImportConflicts(
 export function applyImportMode(
   preview: WatchlistImportPreview,
   existing: Record<string, WatchedAnime>,
-  mode: WatchlistImportMode,
+  mode: WatchlistImportMode
 ): ExternalWatchlistEntry[] {
   const conflictIds = new Set(preview.conflicts.map((row) => row.malId));
-  if (mode === "replace") return preview.entries;
-  if (mode === "skip") {
+  if (mode === 'replace') return preview.entries;
+  if (mode === 'skip') {
     return preview.entries.filter((entry) => !existing[entry.malId]);
   }
-  return preview.entries.filter(
-    (entry) => !existing[entry.malId] || !conflictIds.has(entry.malId),
-  );
+  return preview.entries.filter((entry) => !existing[entry.malId] || !conflictIds.has(entry.malId));
 }
 
 export function parseMalAnimeXml(xml: string): WatchlistImportPreview {
@@ -261,8 +252,8 @@ export function parseMalAnimeXml(xml: string): WatchlistImportPreview {
   const blocks = xml.match(/<anime>[\s\S]*?<\/anime>/gi) ?? [];
 
   for (const block of blocks) {
-    const malId = readXmlTag(block, "series_animedb_id");
-    const status = normalizeStatus("mal", readXmlTag(block, "my_status"));
+    const malId = readXmlTag(block, 'series_animedb_id');
+    const status = normalizeStatus('mal', readXmlTag(block, 'my_status'));
     if (!malId || !status) {
       skipped += 1;
       continue;
@@ -271,14 +262,14 @@ export function parseMalAnimeXml(xml: string): WatchlistImportPreview {
     entries.push({
       malId,
       status,
-      title: readXmlTag(block, "series_title") || undefined,
-      type: readXmlTag(block, "series_type") || undefined,
-      episodes: toPositiveNumber(readXmlTag(block, "series_episodes")),
-      note: readXmlTag(block, "my_comments") || undefined,
+      title: readXmlTag(block, 'series_title') || undefined,
+      type: readXmlTag(block, 'series_type') || undefined,
+      episodes: toPositiveNumber(readXmlTag(block, 'series_episodes')),
+      note: readXmlTag(block, 'my_comments') || undefined,
     });
   }
 
-  return summarize("mal", entries, skipped);
+  return summarize('mal', entries, skipped);
 }
 
 type AniListEntry = {
@@ -294,7 +285,7 @@ type AniListEntry = {
 
 function collectAniListEntries(value: unknown): AniListEntry[] {
   if (Array.isArray(value)) return value as AniListEntry[];
-  if (!value || typeof value !== "object") return [];
+  if (!value || typeof value !== 'object') return [];
   const root = value as {
     lists?: { entries?: AniListEntry[] }[];
     data?: { MediaListCollection?: { lists?: { entries?: AniListEntry[] }[] } };
@@ -310,7 +301,7 @@ export function parseAniListJson(rawJson: string): WatchlistImportPreview {
 
   for (const item of collectAniListEntries(parsed)) {
     const malId = item.media?.idMal?.toString();
-    const status = normalizeStatus("anilist", item.status);
+    const status = normalizeStatus('anilist', item.status);
     if (!malId || !status) {
       skipped += 1;
       continue;
@@ -326,39 +317,38 @@ export function parseAniListJson(rawJson: string): WatchlistImportPreview {
     });
   }
 
-  return summarize("anilist", entries, skipped);
+  return summarize('anilist', entries, skipped);
 }
 
 export function safeParseAniListJson(rawJson: string): WatchlistImportParseResult {
   try {
     return { ok: true, preview: parseAniListJson(rawJson) };
   } catch {
-    return { ok: false, error: "Invalid AniList JSON payload" };
+    return { ok: false, error: 'Invalid AniList JSON payload' };
   }
 }
 
 export function buildAniListExport(watchlist: Record<string, WatchedAnime>) {
   return Object.values(watchlist).map((entry) => ({
     mediaIdMal: Number(entry.id),
-    status:
-      ANILIST_EXPORT_STATUS_MAP[entry.status.trim().toLowerCase()] ?? "PLANNING",
-    notes: entry.note ?? "",
+    status: ANILIST_EXPORT_STATUS_MAP[entry.status.trim().toLowerCase()] ?? 'PLANNING',
+    notes: entry.note ?? '',
   }));
 }
 
 export function parseImportPayload(
   source: WatchlistImportSource,
-  payload: string,
+  payload: string
 ): WatchlistImportPreview | null {
-  if (source === "anilist") {
+  if (source === 'anilist') {
     const parsed = safeParseAniListJson(payload);
     return parsed.ok ? parsed.preview : null;
   }
-  if (source === "shelf") {
+  if (source === 'shelf') {
     const parsed = safeParseShelfJson(payload);
     return parsed.ok ? parsed.preview : null;
   }
-  if (payload.trim().startsWith("<")) {
+  if (payload.trim().startsWith('<')) {
     return parseMalAnimeXml(payload);
   }
   return parseMalCsv(payload);

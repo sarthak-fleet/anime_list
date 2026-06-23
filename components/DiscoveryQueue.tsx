@@ -1,34 +1,36 @@
-"use client";
+'use client';
 
-import { useState, useMemo } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState, useMemo } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   getDiscoveryQueue,
   dismissDiscoveryItems,
   addToWatchlist,
   addToMangaWatchlist,
   getWatchlistTags,
-} from "@/lib/api";
-import { useAuth } from "@/lib/auth";
-import type { DiscoveryQueueResponse } from "@/lib/types";
-import GoogleSignInButton from "./GoogleSignInButton";
-import { Button } from "./ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+} from '@/lib/api';
+import { useAuth } from '@/lib/auth';
+import type { DiscoveryQueueResponse } from '@/lib/types';
+import GoogleSignInButton from './GoogleSignInButton';
+import { Button } from './ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
-type DiscoveryItem = DiscoveryQueueResponse["results"][number];
+type DiscoveryItem = DiscoveryQueueResponse['results'][number];
 
 function capitalize(s: string) {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-function MediaBadge({ mediaType }: { mediaType?: "anime" | "manga" }) {
+function MediaBadge({ mediaType }: { mediaType?: 'anime' | 'manga' }) {
   if (!mediaType) return null;
   return (
-    <span className={`px-2 py-0.5 rounded text-xs font-semibold uppercase tracking-wide ${
-      mediaType === "manga"
-        ? "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300"
-        : "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300"
-    }`}>
+    <span
+      className={`px-2 py-0.5 rounded text-xs font-semibold uppercase tracking-wide ${
+        mediaType === 'manga'
+          ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300'
+          : 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
+      }`}
+    >
       {mediaType}
     </span>
   );
@@ -36,25 +38,26 @@ function MediaBadge({ mediaType }: { mediaType?: "anime" | "manga" }) {
 
 interface DiscoveryCardProps {
   item: DiscoveryItem;
-  onDismiss: (malId: number, mediaType?: "anime" | "manga") => void;
-  onAdd: (malId: number, status: string, mediaType?: "anime" | "manga") => void;
+  onDismiss: (malId: number, mediaType?: 'anime' | 'manga') => void;
+  onAdd: (malId: number, status: string, mediaType?: 'anime' | 'manga') => void;
   onSkip: () => void;
   isPending: boolean;
 }
 
 function DiscoveryCard({ item, onDismiss, onAdd, onSkip, isPending }: DiscoveryCardProps) {
-  const [selectedStatus, setSelectedStatus] = useState("Watching");
+  const [selectedStatus, setSelectedStatus] = useState('Watching');
   const { data: tagsData } = useQuery({
-    queryKey: ["watchlist", "tags"],
+    queryKey: ['watchlist', 'tags'],
     queryFn: getWatchlistTags,
   });
 
   const availableTags = useMemo(
-    () => tagsData?.tags?.map(t => t.tag) || ["Watching", "Completed", "Deferred", "Avoiding", "BRR"],
-    [tagsData],
+    () =>
+      tagsData?.tags?.map((t) => t.tag) || ['Watching', 'Completed', 'Deferred', 'Avoiding', 'BRR'],
+    [tagsData]
   );
 
-  const isManga = item.mediaType === "manga";
+  const isManga = item.mediaType === 'manga';
   const detailHref = isManga ? `/manga/${item.mal_id}` : `/anime/${item.mal_id}`;
   const displayTitle = item.title_english || item.title;
   const hasReasons = item.reasons && item.reasons.length > 0;
@@ -81,11 +84,9 @@ function DiscoveryCard({ item, onDismiss, onAdd, onSkip, isPending }: DiscoveryC
           <div className="flex items-center gap-2 flex-wrap">
             <MediaBadge mediaType={item.mediaType} />
             <span className="text-xs text-primary font-medium uppercase tracking-wide">
-              {[item.year, item.season ? capitalize(item.season) : null].filter(Boolean).join(" ")}
+              {[item.year, item.season ? capitalize(item.season) : null].filter(Boolean).join(' ')}
             </span>
-            {statusLabel && (
-              <span className="text-xs text-muted-foreground">· {statusLabel}</span>
-            )}
+            {statusLabel && <span className="text-xs text-muted-foreground">· {statusLabel}</span>}
             {item.score != null && (
               <span className="ml-auto text-xs font-semibold text-muted-foreground tabular-nums">
                 ★ {item.score.toFixed(1)}
@@ -108,8 +109,11 @@ function DiscoveryCard({ item, onDismiss, onAdd, onSkip, isPending }: DiscoveryC
 
           {/* Genres */}
           <div className="flex flex-wrap gap-1.5">
-            {item.genres.slice(0, 4).map(genre => (
-              <span key={genre} className="px-2 py-0.5 bg-muted text-muted-foreground text-xs rounded-full">
+            {item.genres.slice(0, 4).map((genre) => (
+              <span
+                key={genre}
+                className="px-2 py-0.5 bg-muted text-muted-foreground text-xs rounded-full"
+              >
                 {genre}
               </span>
             ))}
@@ -118,7 +122,7 @@ function DiscoveryCard({ item, onDismiss, onAdd, onSkip, isPending }: DiscoveryC
           {/* Taste match reasons */}
           {hasReasons && (
             <p className="text-xs text-green-600 dark:text-green-400">
-              Matches your taste · {item.reasons!.join(", ")}
+              Matches your taste · {item.reasons?.join(', ')}
             </p>
           )}
 
@@ -130,8 +134,10 @@ function DiscoveryCard({ item, onDismiss, onAdd, onSkip, isPending }: DiscoveryC
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
-                  {availableTags.map(status => (
-                    <SelectItem key={status} value={status}>{status}</SelectItem>
+                  {availableTags.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {status}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -168,7 +174,7 @@ export function DiscoveryQueue() {
   const { user, loading: authLoading } = useAuth();
 
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ["discoveryQueue"],
+    queryKey: ['discoveryQueue'],
     queryFn: () => getDiscoveryQueue(50),
     enabled: !!user,
     staleTime: 5 * 60 * 1000,
@@ -176,7 +182,7 @@ export function DiscoveryQueue() {
 
   const nextItem = () => {
     if (data && currentIndex < data.results.length - 1) {
-      setCurrentIndex(i => i + 1);
+      setCurrentIndex((i) => i + 1);
     } else {
       refetch();
       setCurrentIndex(0);
@@ -184,39 +190,47 @@ export function DiscoveryQueue() {
   };
 
   const dismissMutation = useMutation({
-    mutationFn: ({ malId, mediaType }: { malId: number; mediaType?: "anime" | "manga" }) => {
+    mutationFn: ({ malId, mediaType }: { malId: number; mediaType?: 'anime' | 'manga' }) => {
       // Manga dismissals are not persisted; just advance in the client queue
-      if (mediaType === "manga") return Promise.resolve({ success: true, message: "skipped" });
+      if (mediaType === 'manga') return Promise.resolve({ success: true, message: 'skipped' });
       return dismissDiscoveryItems([malId]);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["discoveryQueue"] });
+      queryClient.invalidateQueries({ queryKey: ['discoveryQueue'] });
       nextItem();
     },
   });
 
   const addMutation = useMutation({
-    mutationFn: ({ malId, status, mediaType }: { malId: number; status: string; mediaType?: "anime" | "manga" }) =>
-      mediaType === "manga"
+    mutationFn: ({
+      malId,
+      status,
+      mediaType,
+    }: {
+      malId: number;
+      status: string;
+      mediaType?: 'anime' | 'manga';
+    }) =>
+      mediaType === 'manga'
         ? addToMangaWatchlist([malId], status)
         : addToWatchlist([malId], status),
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["discoveryQueue"] });
-      if (variables.mediaType !== "manga") {
-        queryClient.invalidateQueries({ queryKey: ["watchlist"] });
+      queryClient.invalidateQueries({ queryKey: ['discoveryQueue'] });
+      if (variables.mediaType !== 'manga') {
+        queryClient.invalidateQueries({ queryKey: ['watchlist'] });
       } else {
-        queryClient.invalidateQueries({ queryKey: ["manga", "watchlist"] });
-        queryClient.invalidateQueries({ queryKey: ["manga", "watchlist", "enriched"] });
+        queryClient.invalidateQueries({ queryKey: ['manga', 'watchlist'] });
+        queryClient.invalidateQueries({ queryKey: ['manga', 'watchlist', 'enriched'] });
       }
       nextItem();
     },
   });
 
-  const handleDismiss = (malId: number, mediaType?: "anime" | "manga") => {
+  const handleDismiss = (malId: number, mediaType?: 'anime' | 'manga') => {
     dismissMutation.mutate({ malId, mediaType });
   };
 
-  const handleAdd = (malId: number, status: string, mediaType?: "anime" | "manga") => {
+  const handleAdd = (malId: number, status: string, mediaType?: 'anime' | 'manga') => {
     addMutation.mutate({ malId, status, mediaType });
   };
 
@@ -230,8 +244,8 @@ export function DiscoveryQueue() {
         <div className="mx-auto flex max-w-lg flex-col items-center justify-center rounded-xl border border-border bg-card px-6 py-12 text-center shadow-sm">
           <h1 className="text-3xl font-bold">Weekly Discovery</h1>
           <p className="mt-3 text-sm leading-6 text-muted-foreground">
-            Sign in to get a seasonal anime and manga queue ranked against your
-            watchlist. Search stays public; discovery needs your taste history.
+            Sign in to get a seasonal anime and manga queue ranked against your watchlist. Search
+            stays public; discovery needs your taste history.
           </p>
           <div className="mt-6">
             <GoogleSignInButton />
@@ -265,12 +279,10 @@ export function DiscoveryQueue() {
   const meta = data?.meta;
   const currentItem = results[currentIndex];
 
-  const seasonLabel = meta
-    ? `${capitalize(meta.currentSeason)} ${meta.currentYear}`
-    : null;
+  const seasonLabel = meta ? `${capitalize(meta.currentSeason)} ${meta.currentYear}` : null;
 
-  const animeCount = results.filter(r => r.mediaType === "anime" || !r.mediaType).length;
-  const mangaCount = results.filter(r => r.mediaType === "manga").length;
+  const animeCount = results.filter((r) => r.mediaType === 'anime' || !r.mediaType).length;
+  const mangaCount = results.filter((r) => r.mediaType === 'manga').length;
 
   if (results.length === 0) {
     return (
@@ -288,9 +300,12 @@ export function DiscoveryQueue() {
       <div className="container mx-auto py-8">
         <h1 className="text-3xl font-bold text-center mb-8">Weekly Discovery</h1>
         <div className="text-center p-8 text-muted-foreground">
-          You've worked through this batch.{" "}
+          You've worked through this batch.{' '}
           <button
-            onClick={() => { refetch(); setCurrentIndex(0); }}
+            onClick={() => {
+              refetch();
+              setCurrentIndex(0);
+            }}
             className="underline text-primary"
           >
             Refresh

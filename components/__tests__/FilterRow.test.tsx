@@ -1,33 +1,32 @@
 import { describe, expect, it, vi } from 'vitest';
-import React from "react";
-import { fireEvent, render, screen } from "@testing-library/react";
-import type { FieldOptions, FilterActions, SearchFilter } from "@/lib/types";
+import { fireEvent, render, screen } from '@testing-library/react';
+import type { FieldOptions, FilterActions, SearchFilter } from '@/lib/types';
 
-import FilterRow from "../FilterRow";
+import FilterRow from '../FilterRow';
 
 const fields: FieldOptions = {
-  numeric: ["score", "year"],
-  array: ["genres", "themes", "demographics"],
-  string: ["title", "type", "season"],
+  numeric: ['score', 'year'],
+  array: ['genres', 'themes', 'demographics'],
+  string: ['title', 'type', 'season'],
 };
 
 const actions: FilterActions = {
   comparison: [
-    "EQUALS",
-    "GREATER_THAN",
-    "GREATER_THAN_OR_EQUALS",
-    "LESS_THAN",
-    "LESS_THAN_OR_EQUALS",
+    'EQUALS',
+    'GREATER_THAN',
+    'GREATER_THAN_OR_EQUALS',
+    'LESS_THAN',
+    'LESS_THAN_OR_EQUALS',
   ],
-  array: ["INCLUDES_ALL", "INCLUDES_ANY", "EXCLUDES"],
+  array: ['INCLUDES_ALL', 'INCLUDES_ANY', 'EXCLUDES'],
 };
 
-describe("FilterRow", () => {
-  it("switches type filters to a single-value enum action", () => {
+describe('FilterRow', () => {
+  it('switches type filters to a single-value enum action', () => {
     const onChange = vi.fn();
     const filter: SearchFilter = {
-      field: "score",
-      action: "GREATER_THAN_OR_EQUALS",
+      field: 'score',
+      action: 'GREATER_THAN_OR_EQUALS',
       value: 7,
     };
 
@@ -42,26 +41,26 @@ describe("FilterRow", () => {
       />
     );
 
-    fireEvent.change(screen.getAllByRole("combobox")[0], {
-      target: { value: "type" },
+    fireEvent.change(screen.getAllByRole('combobox')[0], {
+      target: { value: 'type' },
     });
 
     expect(onChange).toHaveBeenCalledWith(
       0,
       expect.objectContaining({
-        field: "type",
-        action: "EQUALS",
-        value: "",
+        field: 'type',
+        action: 'EQUALS',
+        value: '',
       })
     );
   });
 
-  it("normalizes legacy type filters before sending updates", () => {
+  it('normalizes legacy type filters before sending updates', () => {
     const onChange = vi.fn();
     const filter: SearchFilter = {
-      field: "type",
-      action: "INCLUDES_ANY",
-      value: ["TV"],
+      field: 'type',
+      action: 'INCLUDES_ANY',
+      value: ['TV'],
     };
 
     render(
@@ -75,16 +74,16 @@ describe("FilterRow", () => {
       />
     );
 
-    fireEvent.change(screen.getAllByRole("combobox")[2], {
-      target: { value: "Movie" },
+    fireEvent.change(screen.getAllByRole('combobox')[2], {
+      target: { value: 'Movie' },
     });
 
     expect(onChange).toHaveBeenCalledWith(
       1,
       expect.objectContaining({
-        field: "type",
-        action: "EQUALS",
-        value: "Movie",
+        field: 'type',
+        action: 'EQUALS',
+        value: 'Movie',
       })
     );
   });

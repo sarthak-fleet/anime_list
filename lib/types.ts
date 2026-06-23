@@ -216,7 +216,7 @@ export interface WatchlistImportConflict {
 }
 
 export interface WatchlistImportPreview {
-  source: "mal" | "anilist" | "shelf";
+  source: 'mal' | 'anilist' | 'shelf';
   entries: {
     malId: string;
     status: string;
@@ -230,7 +230,7 @@ export interface WatchlistImportPreview {
   conflicts?: WatchlistImportConflict[];
   newCount?: number;
   imported?: number;
-  mode?: "merge" | "replace" | "skip";
+  mode?: 'merge' | 'replace' | 'skip';
 }
 
 export interface SavedSearch {
@@ -285,7 +285,7 @@ export interface CollectionItem {
 }
 
 export interface AniListExportResponse {
-  source: "anilist";
+  source: 'anilist';
   entries: {
     mediaIdMal: number;
     status: string;
@@ -409,6 +409,6 @@ export interface DiscoveryQueueResponse {
     members?: number;
     status?: string;
     reasons?: string[];
-    mediaType?: "anime" | "manga";
+    mediaType?: 'anime' | 'manga';
   }[];
 }

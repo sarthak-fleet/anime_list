@@ -1,37 +1,38 @@
-"use client";
+'use client';
 
-import type posthogType from "posthog-js";
+import type posthogType from 'posthog-js';
 
-const PROJECT_SLUG = "anime_list";
-const POSTHOG_KEY = import.meta.env.VITE_POSTHOG_KEY ?? "phc_qgiAarw4Co4pw9fz3Fxj4UJaHmqzFetqs4JrXhGc35Nd";
-const POSTHOG_HOST = "https://us.i.posthog.com";
+const PROJECT_SLUG = 'anime_list';
+const POSTHOG_KEY =
+  import.meta.env.VITE_POSTHOG_KEY ?? 'phc_qgiAarw4Co4pw9fz3Fxj4UJaHmqzFetqs4JrXhGc35Nd';
+const POSTHOG_HOST = 'https://us.i.posthog.com';
 
 let posthogPromise: Promise<typeof posthogType> | null = null;
 
 function loadPosthog() {
   if (!posthogPromise) {
-    posthogPromise = import("posthog-js").then((mod) => mod.default);
+    posthogPromise = import('posthog-js').then((mod) => mod.default);
   }
   return posthogPromise;
 }
 
 function route() {
-  if (typeof window === "undefined") return undefined;
+  if (typeof window === 'undefined') return undefined;
   return `${window.location.origin}${window.location.pathname}`;
 }
 
 function messageFrom(error: unknown) {
   if (error instanceof Error) return error.message;
-  if (typeof error === "string") return error;
+  if (typeof error === 'string') return error;
   return String(error);
 }
 
 export async function capturePageCrash(
   error: unknown,
-  source: "window_error" | "unhandled_rejection" | "manual",
+  source: 'window_error' | 'unhandled_rejection' | 'manual'
 ) {
   const posthog = await loadPosthog();
-  posthog.capture("foundry_page_crash", {
+  posthog.capture('foundry_page_crash', {
     project_id: PROJECT_SLUG,
     route: route(),
     source,
@@ -41,26 +42,26 @@ export async function capturePageCrash(
 }
 
 type ErrorBoundaryScope =
-  | "root"
-  | "global"
-  | "anime-detail"
-  | "watchlist"
-  | "schedule"
-  | "stats"
-  | "unknown";
+  | 'root'
+  | 'global'
+  | 'anime-detail'
+  | 'watchlist'
+  | 'schedule'
+  | 'stats'
+  | 'unknown';
 
 export async function captureError(
   error: unknown,
-  options: { scope?: ErrorBoundaryScope; digest?: string; source?: string } = {},
+  options: { scope?: ErrorBoundaryScope; digest?: string; source?: string } = {}
 ) {
   try {
     const posthog = await loadPosthog();
-    posthog.capture("error_captured", {
+    posthog.capture('error_captured', {
       project_id: PROJECT_SLUG,
       route: route(),
-      scope: options.scope ?? "unknown",
+      scope: options.scope ?? 'unknown',
       digest: options.digest,
-      source: options.source ?? "error_boundary",
+      source: options.source ?? 'error_boundary',
       message: messageFrom(error),
       stack: error instanceof Error ? error.stack : undefined,
     });
@@ -70,29 +71,29 @@ export async function captureError(
 }
 
 export function installBrowserMonitoring() {
-  if (typeof window === "undefined") return () => {};
+  if (typeof window === 'undefined') return () => {};
 
   void loadPosthog().then((posthog) => {
     posthog.init(POSTHOG_KEY, {
       api_host: POSTHOG_HOST,
-      person_profiles: "always",
+      person_profiles: 'always',
       capture_pageview: false,
       autocapture: false,
     });
   });
 
   const onError = (event: ErrorEvent) => {
-    void capturePageCrash(event.error ?? event.message, "window_error");
+    void capturePageCrash(event.error ?? event.message, 'window_error');
   };
   const onUnhandledRejection = (event: PromiseRejectionEvent) => {
-    void capturePageCrash(event.reason, "unhandled_rejection");
+    void capturePageCrash(event.reason, 'unhandled_rejection');
   };
 
-  window.addEventListener("error", onError);
-  window.addEventListener("unhandledrejection", onUnhandledRejection);
+  window.addEventListener('error', onError);
+  window.addEventListener('unhandledrejection', onUnhandledRejection);
 
   return () => {
-    window.removeEventListener("error", onError);
-    window.removeEventListener("unhandledrejection", onUnhandledRejection);
+    window.removeEventListener('error', onError);
+    window.removeEventListener('unhandledrejection', onUnhandledRejection);
   };
 }

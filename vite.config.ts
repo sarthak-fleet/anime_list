@@ -1,15 +1,15 @@
-import { defineConfig, type Plugin } from "vite";
-import react from "@vitejs/plugin-react-swc";
-import path from "path";
-import tailwindcss from "@tailwindcss/vite";
+import { defineConfig, type Plugin } from 'vite';
+import react from '@vitejs/plugin-react-swc';
+import path from 'node:path';
+import tailwindcss from '@tailwindcss/vite';
 
 /** Load extracted app CSS without blocking first paint — index.html carries the LCP shell. */
 function deferAppCss(): Plugin {
   return {
-    name: "defer-app-css",
-    apply: "build",
+    name: 'defer-app-css',
+    apply: 'build',
     transformIndexHtml: {
-      order: "post",
+      order: 'post',
       handler(html) {
         return html.replace(
           /<link rel="stylesheet" crossorigin href="(\/assets\/[^"]+\.css)">/g,
@@ -18,8 +18,8 @@ function deferAppCss(): Plugin {
             return [
               `<link rel="preload" href="${href}" as="style" onload="this.onload=null;this.rel='stylesheet'">`,
               `<noscript><link rel="stylesheet" href="${href}"></noscript>`,
-            ].join("\n    ");
-          },
+            ].join('\n    ');
+          }
         );
       },
     },
@@ -28,27 +28,27 @@ function deferAppCss(): Plugin {
 
 export default defineConfig(() => ({
   server: {
-    host: "::",
+    host: '::',
     port: 5173,
   },
   plugins: [react(), tailwindcss(), deferAppCss()],
   css: {
-    transformer: "lightningcss",
+    transformer: 'lightningcss',
     lightningcss: {
       drafts: { customMedia: true },
     },
   },
   build: {
-    cssMinify: "lightningcss",
+    cssMinify: 'lightningcss',
     modulePreload: false,
     rollupOptions: {
       output: {
         manualChunks(id) {
-          if (id.includes("node_modules")) {
-            if (id.includes("posthog-js")) return "posthog";
-            if (id.includes("@tanstack/react-router")) return "router";
-            if (id.includes("@tanstack/react-query")) return "query";
-            if (id.includes("react-dom") || id.includes("/react/")) return "react";
+          if (id.includes('node_modules')) {
+            if (id.includes('posthog-js')) return 'posthog';
+            if (id.includes('@tanstack/react-router')) return 'router';
+            if (id.includes('@tanstack/react-query')) return 'query';
+            if (id.includes('react-dom') || id.includes('/react/')) return 'react';
           }
         },
       },
@@ -56,7 +56,7 @@ export default defineConfig(() => ({
   },
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "."),
+      '@': path.resolve(__dirname, '.'),
     },
   },
 }));

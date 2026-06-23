@@ -29,7 +29,7 @@ export interface TimelineDay {
 
 export function computeTimeline(
   items: EnrichedScheduleItem[],
-  startDate: Date = new Date(),
+  startDate: Date = new Date()
 ): {
   timeline: TimelineDay[];
   stats: {
@@ -61,7 +61,7 @@ export function computeTimeline(
       if (!dayEntry) {
         dayEntry = {
           day: currentDay,
-          date: date.toISOString().split("T")[0],
+          date: date.toISOString().split('T')[0],
           entries: [],
         };
         timeline.push(dayEntry);
@@ -80,7 +80,7 @@ export function computeTimeline(
     }
   }
 
-  const startDateStr = startDate.toISOString().split("T")[0];
+  const startDateStr = startDate.toISOString().split('T')[0];
   const finishDate = new Date(startDate);
   finishDate.setDate(finishDate.getDate() + Math.max(0, currentDay - 1));
 
@@ -90,7 +90,7 @@ export function computeTimeline(
       total_episodes: totalEpisodes,
       total_days: currentDay,
       start_date: startDateStr,
-      finish_date: finishDate.toISOString().split("T")[0],
+      finish_date: finishDate.toISOString().split('T')[0],
     },
   };
 }

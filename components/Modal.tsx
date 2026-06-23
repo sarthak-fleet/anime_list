@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useCallback, useRef, useEffect } from "react";
-import type { MouseEventHandler } from "react";
-import { useRouter } from "@tanstack/react-router";
-import { X } from "lucide-react";
+import { useCallback, useRef, useEffect } from 'react';
+import type { MouseEventHandler } from 'react';
+import { useRouter } from '@tanstack/react-router';
+import { X } from 'lucide-react';
 
 export default function Modal({ children }: { children: React.ReactNode }) {
   const overlay = useRef<HTMLDivElement>(null);
@@ -20,25 +20,27 @@ export default function Modal({ children }: { children: React.ReactNode }) {
         if (onDismiss) onDismiss();
       }
     },
-    [onDismiss, overlay]
+    [onDismiss]
   );
 
   const onKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (e.key === "Escape") onDismiss();
+      if (e.key === 'Escape') onDismiss();
     },
     [onDismiss]
   );
 
   useEffect(() => {
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
   }, [onKeyDown]);
 
   useEffect(() => {
     const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = prev; };
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
   }, []);
 
   return (
@@ -60,9 +62,7 @@ export default function Modal({ children }: { children: React.ReactNode }) {
             <X className="h-4 w-4" />
           </button>
         </div>
-        <div className="overflow-y-auto">
-          {children}
-        </div>
+        <div className="overflow-y-auto">{children}</div>
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import { getDb } from "./client";
+import { getDb } from './client';
 import type {
   ExternalWatchlistEntry,
   MangaWatchlistData,
@@ -7,28 +7,28 @@ import type {
   WatchTag,
   WatchlistData,
   WatchlistTag,
-} from "../types/watchlist";
+} from '../types/watchlist';
 
 export const DEFAULT_USER_TAGS = [
-  { tag: "Watching", color: "#10b981" },
-  { tag: "Done", color: "#3b82f6" },
+  { tag: 'Watching', color: '#10b981' },
+  { tag: 'Done', color: '#3b82f6' },
 ] as const;
 
 const DEFAULT_TAG_COLOR_MAP: Map<string, string> = new Map(
-  DEFAULT_USER_TAGS.map(({ tag, color }) => [tag, color]),
+  DEFAULT_USER_TAGS.map(({ tag, color }) => [tag, color])
 );
 
 const TAG_COLOR_PALETTE = [
-  "#10b981",
-  "#3b82f6",
-  "#f59e0b",
-  "#ef4444",
-  "#8b5cf6",
-  "#06b6d4",
-  "#f97316",
-  "#84cc16",
-  "#ec4899",
-  "#14b8a6",
+  '#10b981',
+  '#3b82f6',
+  '#f59e0b',
+  '#ef4444',
+  '#8b5cf6',
+  '#06b6d4',
+  '#f97316',
+  '#84cc16',
+  '#ec4899',
+  '#14b8a6',
 ] as const;
 
 const tagColorPattern = /^#[0-9A-Fa-f]{6}$/;
@@ -103,11 +103,7 @@ async function getTagByName(userId: string, tag: string): Promise<DbTag | null> 
   };
 }
 
-async function ensureTag(
-  userId: string,
-  tag: string,
-  color?: string,
-): Promise<DbTag> {
+async function ensureTag(userId: string, tag: string, color?: string): Promise<DbTag> {
   const db = getDb();
   const normalizedTag = normalizeTag(tag);
   const normalizedColor = normalizeTagColor(color);
@@ -116,7 +112,7 @@ async function ensureTag(
   if (existing) {
     if (normalizedColor && normalizedColor !== normalizeTagColor(existing.color ?? undefined)) {
       await db.execute({
-        sql: "UPDATE user_tags SET color = ? WHERE id = ?",
+        sql: 'UPDATE user_tags SET color = ? WHERE id = ?',
         args: [normalizedColor, existing.id],
       });
       return { ...existing, color: normalizedColor };
@@ -130,7 +126,7 @@ async function ensureTag(
   const id = crypto.randomUUID();
   const resolvedColor = normalizedColor || defaultTagColor(normalizedTag);
   await db.execute({
-    sql: "INSERT INTO user_tags (id, user_id, name, color) VALUES (?, ?, ?, ?)",
+    sql: 'INSERT INTO user_tags (id, user_id, name, color) VALUES (?, ?, ?, ?)',
     args: [id, userId, normalizedTag, resolvedColor],
   });
 
@@ -170,20 +166,17 @@ export async function initWatchlistTables(): Promise<void> {
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       PRIMARY KEY (user_id, mal_id)
     )`,
-    "CREATE INDEX IF NOT EXISTS idx_user_tags_user ON user_tags(user_id)",
-    "CREATE INDEX IF NOT EXISTS idx_user_tags_user_lower_name ON user_tags(user_id, lower(name))",
-    "CREATE INDEX IF NOT EXISTS idx_watchlist_tag_id ON anime_watchlist(tag_id)",
-    "CREATE INDEX IF NOT EXISTS idx_watchlist_user_tag ON anime_watchlist(user_id, tag_id)",
-    "CREATE INDEX IF NOT EXISTS idx_manga_watchlist_tag_id ON manga_watchlist(tag_id)",
-    "CREATE INDEX IF NOT EXISTS idx_manga_watchlist_user_tag ON manga_watchlist(user_id, tag_id)",
-    "CREATE INDEX IF NOT EXISTS idx_anime_dismissals_user ON anime_dismissals(user_id)",
+    'CREATE INDEX IF NOT EXISTS idx_user_tags_user ON user_tags(user_id)',
+    'CREATE INDEX IF NOT EXISTS idx_user_tags_user_lower_name ON user_tags(user_id, lower(name))',
+    'CREATE INDEX IF NOT EXISTS idx_watchlist_tag_id ON anime_watchlist(tag_id)',
+    'CREATE INDEX IF NOT EXISTS idx_watchlist_user_tag ON anime_watchlist(user_id, tag_id)',
+    'CREATE INDEX IF NOT EXISTS idx_manga_watchlist_tag_id ON manga_watchlist(tag_id)',
+    'CREATE INDEX IF NOT EXISTS idx_manga_watchlist_user_tag ON manga_watchlist(user_id, tag_id)',
+    'CREATE INDEX IF NOT EXISTS idx_anime_dismissals_user ON anime_dismissals(user_id)',
   ]);
 }
 
-export async function addDismissedAnime(
-  userId: string,
-  malIds: string[],
-): Promise<void> {
+export async function addDismissedAnime(userId: string, malIds: string[]): Promise<void> {
   const db = getDb();
   const statements = malIds.map((id) => ({
     sql: `INSERT OR IGNORE INTO anime_dismissals (user_id, mal_id) VALUES (?, ?)`,
@@ -197,13 +190,11 @@ export async function addDismissedAnime(
 export async function getDismissedAnime(userId: string): Promise<string[]> {
   const db = getDb();
   const result = await db.execute({
-    sql: "SELECT mal_id FROM anime_dismissals WHERE user_id = ?",
+    sql: 'SELECT mal_id FROM anime_dismissals WHERE user_id = ?',
     args: [userId],
   });
   return result.rows.map((row) => row.mal_id as string);
 }
-
-
 
 export async function seedDefaultUserTags(userId: string): Promise<void> {
   for (const { tag, color } of DEFAULT_USER_TAGS) {
@@ -211,7 +202,7 @@ export async function seedDefaultUserTags(userId: string): Promise<void> {
   }
 }
 
-export async function getUserTags(userId: string = "default"): Promise<WatchlistTag[]> {
+export async function getUserTags(userId: string = 'default'): Promise<WatchlistTag[]> {
   const db = getDb();
 
   const result = await db.execute({
@@ -245,8 +236,8 @@ export async function getUserTags(userId: string = "default"): Promise<Watchlist
 
 export async function upsertUserTag(
   tag: string,
-  userId: string = "default",
-  color?: string,
+  userId: string = 'default',
+  color?: string
 ): Promise<void> {
   await ensureTag(userId, tag, color);
 }
@@ -257,12 +248,12 @@ export async function updateUserTag(
   updates: {
     tag?: string;
     color?: string;
-  },
+  }
 ): Promise<void> {
   const db = getDb();
   const current = await getTagById(userId, tagId);
   if (!current) {
-    throw new Error("Tag not found");
+    throw new Error('Tag not found');
   }
 
   const nextName = updates.tag ? normalizeTag(updates.tag) : current.name;
@@ -283,11 +274,11 @@ export async function updateUserTag(
   });
 
   if (duplicate.rows.length > 0) {
-    throw new Error("Tag already exists");
+    throw new Error('Tag already exists');
   }
 
   await db.execute({
-    sql: "UPDATE user_tags SET name = ?, color = ? WHERE user_id = ? AND id = ?",
+    sql: 'UPDATE user_tags SET name = ?, color = ? WHERE user_id = ? AND id = ?',
     args: [nextName, nextColor, userId, tagId],
   });
 }
@@ -295,43 +286,43 @@ export async function updateUserTag(
 export async function deleteUserTag(
   tagId: string,
   userId: string,
-  moveToTagId?: string,
+  moveToTagId?: string
 ): Promise<void> {
   const db = getDb();
   const source = await getTagById(userId, tagId);
   if (!source) {
-    throw new Error("Tag not found");
+    throw new Error('Tag not found');
   }
 
-  let targetTagId = moveToTagId?.trim() || "";
+  let targetTagId = moveToTagId?.trim() || '';
   if (!targetTagId) {
-    if (source.name.toLowerCase() === "done") {
-      targetTagId = (await ensureTag(userId, "Watching", defaultTagColor("Watching"))).id;
+    if (source.name.toLowerCase() === 'done') {
+      targetTagId = (await ensureTag(userId, 'Watching', defaultTagColor('Watching'))).id;
     } else {
-      targetTagId = (await ensureTag(userId, "Done", defaultTagColor("Done"))).id;
+      targetTagId = (await ensureTag(userId, 'Done', defaultTagColor('Done'))).id;
     }
   }
 
   if (targetTagId === tagId) {
-    throw new Error("Cannot move items into the same tag being deleted");
+    throw new Error('Cannot move items into the same tag being deleted');
   }
 
   const target = await getTagById(userId, targetTagId);
   if (!target) {
-    throw new Error("Target tag not found");
+    throw new Error('Target tag not found');
   }
 
   await db.batch([
     {
-      sql: "UPDATE anime_watchlist SET tag_id = ? WHERE user_id = ? AND tag_id = ?",
+      sql: 'UPDATE anime_watchlist SET tag_id = ? WHERE user_id = ? AND tag_id = ?',
       args: [targetTagId, userId, tagId],
     },
     {
-      sql: "UPDATE manga_watchlist SET tag_id = ? WHERE user_id = ? AND tag_id = ?",
+      sql: 'UPDATE manga_watchlist SET tag_id = ? WHERE user_id = ? AND tag_id = ?',
       args: [targetTagId, userId, tagId],
     },
     {
-      sql: "DELETE FROM user_tags WHERE user_id = ? AND id = ?",
+      sql: 'DELETE FROM user_tags WHERE user_id = ? AND id = ?',
       args: [userId, tagId],
     },
   ]);
@@ -339,7 +330,7 @@ export async function deleteUserTag(
 
 // Anime watchlist
 
-export async function getAnimeWatchlist(userId: string = "default"): Promise<WatchlistData | null> {
+export async function getAnimeWatchlist(userId: string = 'default'): Promise<WatchlistData | null> {
   const db = getDb();
   const result = await db.execute({
     sql: `
@@ -356,7 +347,7 @@ export async function getAnimeWatchlist(userId: string = "default"): Promise<Wat
     const id = row.mal_id as string;
     anime[id] = {
       id,
-      status: ((row.tag_name as string) || "").trim(),
+      status: ((row.tag_name as string) || '').trim(),
       ...(row.title ? { title: row.title as string } : {}),
       ...(row.type ? { type: row.type as string } : {}),
       ...(row.episodes ? { episodes: row.episodes as number } : {}),
@@ -372,7 +363,7 @@ export async function getAnimeWatchlist(userId: string = "default"): Promise<Wat
 
 export async function getAnimeWatchlistEntry(
   malId: string,
-  userId: string = "default",
+  userId: string = 'default'
 ): Promise<WatchedAnime | null> {
   const db = getDb();
   const result = await db.execute({
@@ -393,7 +384,7 @@ export async function getAnimeWatchlistEntry(
   const row = result.rows[0];
   return {
     id: row.mal_id as string,
-    status: ((row.tag_name as string) || "").trim(),
+    status: ((row.tag_name as string) || '').trim(),
     ...(row.title ? { title: row.title as string } : {}),
     ...(row.type ? { type: row.type as string } : {}),
     ...(row.episodes ? { episodes: row.episodes as number } : {}),
@@ -404,8 +395,8 @@ export async function getAnimeWatchlistEntry(
 export async function upsertAnimeWatchlist(
   malIds: string[],
   status: WatchTag,
-  userId: string = "default",
-  tagColor?: string,
+  userId: string = 'default',
+  tagColor?: string
 ): Promise<void> {
   const db = getDb();
   const tag = await ensureTag(userId, status, tagColor);
@@ -420,15 +411,13 @@ export async function upsertAnimeWatchlist(
 
 export async function importAnimeWatchlistEntries(
   entries: ExternalWatchlistEntry[],
-  userId: string = "default",
+  userId: string = 'default'
 ): Promise<{ imported: number }> {
   if (entries.length === 0) return { imported: 0 };
 
   // Resolve each distinct status to a tag ID once, instead of per-entry.
   // For a 500-row import that's ~3 lookups instead of 500.
-  const uniqueStatuses = Array.from(
-    new Set(entries.map((entry) => normalizeTag(entry.status))),
-  );
+  const uniqueStatuses = Array.from(new Set(entries.map((entry) => normalizeTag(entry.status))));
   const tagIdByStatus = new Map<string, string>();
   for (const status of uniqueStatuses) {
     const tag = await ensureTag(userId, status);
@@ -465,11 +454,11 @@ export async function importAnimeWatchlistEntries(
 
 export async function deleteFromAnimeWatchlist(
   malIds: string[],
-  userId: string = "default",
+  userId: string = 'default'
 ): Promise<void> {
   const db = getDb();
   const statements = malIds.map((id) => ({
-    sql: "DELETE FROM anime_watchlist WHERE user_id = ? AND mal_id = ?",
+    sql: 'DELETE FROM anime_watchlist WHERE user_id = ? AND mal_id = ?',
     args: [userId, id],
   }));
   await db.batch(statements);
@@ -477,11 +466,11 @@ export async function deleteFromAnimeWatchlist(
 
 export async function deleteFromMangaWatchlist(
   malIds: string[],
-  userId: string = "default",
+  userId: string = 'default'
 ): Promise<void> {
   const db = getDb();
   const statements = malIds.map((id) => ({
-    sql: "DELETE FROM manga_watchlist WHERE user_id = ? AND mal_id = ?",
+    sql: 'DELETE FROM manga_watchlist WHERE user_id = ? AND mal_id = ?',
     args: [userId, id],
   }));
   await db.batch(statements);
@@ -490,11 +479,11 @@ export async function deleteFromMangaWatchlist(
 export async function updateAnimeWatchlistNote(
   malId: string,
   note: string | null,
-  userId: string = "default",
+  userId: string = 'default'
 ): Promise<boolean> {
   const db = getDb();
   const result = await db.execute({
-    sql: "UPDATE anime_watchlist SET note = ? WHERE user_id = ? AND mal_id = ?",
+    sql: 'UPDATE anime_watchlist SET note = ? WHERE user_id = ? AND mal_id = ?',
     args: [note, userId, malId],
   });
 
@@ -503,7 +492,9 @@ export async function updateAnimeWatchlistNote(
 
 // Manga watchlist
 
-export async function getMangaWatchlist(userId: string = "default"): Promise<MangaWatchlistData | null> {
+export async function getMangaWatchlist(
+  userId: string = 'default'
+): Promise<MangaWatchlistData | null> {
   const db = getDb();
   const result = await db.execute({
     sql: `
@@ -518,7 +509,7 @@ export async function getMangaWatchlist(userId: string = "default"): Promise<Man
   const manga: Record<string, WatchedManga> = {};
   for (const row of result.rows) {
     const id = row.mal_id as string;
-    manga[id] = { id, status: ((row.tag_name as string) || "").trim() };
+    manga[id] = { id, status: ((row.tag_name as string) || '').trim() };
   }
 
   return {
@@ -530,8 +521,8 @@ export async function getMangaWatchlist(userId: string = "default"): Promise<Man
 export async function upsertMangaWatchlist(
   malIds: string[],
   status: WatchTag,
-  userId: string = "default",
-  tagColor?: string,
+  userId: string = 'default',
+  tagColor?: string
 ): Promise<void> {
   const db = getDb();
   const tag = await ensureTag(userId, status, tagColor);

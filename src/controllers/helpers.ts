@@ -39,7 +39,7 @@ export const takePage = <T>(items: T[], count: number, offset = 0): T[] =>
 
 const splitAndTrim = (value: string): string[] =>
   value
-    .split(",")
+    .split(',')
     .map((entry) => entry.trim())
     .filter(Boolean);
 
@@ -47,12 +47,10 @@ export const parseTagQuery = (value: unknown): string[] => {
   if (!value) return [];
   if (Array.isArray(value)) {
     return value
-      .flatMap((entry) =>
-        typeof entry === "string" ? splitAndTrim(entry) : [],
-      )
+      .flatMap((entry) => (typeof entry === 'string' ? splitAndTrim(entry) : []))
       .filter(Boolean);
   }
-  if (typeof value === "string") {
+  if (typeof value === 'string') {
     return splitAndTrim(value);
   }
   return [];

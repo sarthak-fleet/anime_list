@@ -1,5 +1,5 @@
 import { vi } from 'vitest';
-import React from 'react';
+import type React from 'react';
 import { render, screen } from '@testing-library/react';
 import type { AnimeSummary } from '@/lib/types';
 
@@ -14,14 +14,7 @@ let mockWatchlistData = {
 };
 
 vi.mock('@tanstack/react-router', () => ({
-  Link: ({
-    children,
-    to,
-    ...props
-  }: {
-    children: React.ReactNode;
-    to: string;
-  }) => (
+  Link: ({ children, to, ...props }: { children: React.ReactNode; to: string }) => (
     <a href={to} {...props}>
       {children}
     </a>
@@ -130,7 +123,7 @@ describe('AnimeCard', () => {
     render(<AnimeCard anime={baseAnime} />);
 
     expect(
-      screen.getByRole('link', { name: 'Open Shingeki no Kyojin on MyAnimeList' }),
+      screen.getByRole('link', { name: 'Open Shingeki no Kyojin on MyAnimeList' })
     ).toHaveAttribute('href', 'https://myanimelist.net/anime/16498');
   });
 
@@ -159,7 +152,7 @@ describe('AnimeCard', () => {
     render(<AnimeCard anime={baseAnime} />);
 
     expect(
-      screen.getByRole('button', { name: 'Edit watchlist status: Watching' }),
+      screen.getByRole('button', { name: 'Edit watchlist status: Watching' })
     ).toBeInTheDocument();
     expect(screen.getByText('Watching')).toBeInTheDocument();
   });

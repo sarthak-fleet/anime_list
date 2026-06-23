@@ -1,39 +1,36 @@
-import { FILE_PATHS } from "./config";
-import {
-  AnimeItem,
-  RawAnimeData,
-} from "./types/anime";
+import { FILE_PATHS } from './config';
+import type { AnimeItem, RawAnimeData } from './types/anime';
 // Re-export from filterEngine (pure logic, no native deps)
 export {
   filterAnimeList,
   filterCollection,
   matchesFilter,
   getAnimeFieldValue,
-} from "./filterEngine";
-import { filterCollection } from "./filterEngine";
+} from './filterEngine';
+import { filterCollection } from './filterEngine';
 import {
-  MangaItem,
+  type MangaItem,
   MangaField,
-  MangaFilter,
+  type MangaFilter,
   isMangaNumericField,
   isMangaArrayField,
   isMangaStringField,
-  RawMangaData,
-} from "./types/manga";
-import {
+  type RawMangaData,
+} from './types/manga';
+import type {
   WatchlistData,
   MangaWatchlistData,
   WatchTag,
   WatchedAnime,
   UserAnimeListItem as WatchlistUserAnimeItem,
-} from "./types/watchlist";
+} from './types/watchlist';
 
-const extractImageUrl = (images?: { webp?: { image_url?: string }; jpg?: { image_url?: string } }): string | undefined =>
-  images?.webp?.image_url || images?.jpg?.image_url || undefined;
+const extractImageUrl = (images?: {
+  webp?: { image_url?: string };
+  jpg?: { image_url?: string };
+}): string | undefined => images?.webp?.image_url || images?.jpg?.image_url || undefined;
 
-const arrayToMap = (
-  arr?: Array<{ name: string }>
-): { [key: string]: number } => {
+const arrayToMap = (arr?: Array<{ name: string }>): { [key: string]: number } => {
   const map: { [key: string]: number } = {};
   if (arr) {
     arr.forEach(({ name }) => (map[name] = 1));
@@ -96,39 +93,28 @@ const cleanMangaData = (rawData: RawMangaData): MangaItem[] => {
   return rawData
     .map(transformRawManga)
     .filter(
-      (manga) =>
-        manga.score &&
-        manga.scored_by &&
-        manga.members &&
-        manga.favorites &&
-        manga.year
+      (manga) => manga.score && manga.scored_by && manga.members && manga.favorites && manga.year
     );
 };
 
-export const cleanExistingMangaJsonFile = async (): Promise<
-  MangaItem[] | null
-> => {
+export const cleanExistingMangaJsonFile = async (): Promise<MangaItem[] | null> => {
   try {
-    const { readJsonFile, writeJsonFile } = await import("./utils/file");
+    const { readJsonFile, writeJsonFile } = await import('./utils/file');
     console.log(`Reading ${FILE_PATHS.mangaData}...`);
-    const rawData = await readJsonFile<Record<string, RawMangaData[0]>>(
-      FILE_PATHS.mangaData
-    );
+    const rawData = await readJsonFile<Record<string, RawMangaData[0]>>(FILE_PATHS.mangaData);
     if (!rawData) {
-      throw new Error("No data found in manga data file");
+      throw new Error('No data found in manga data file');
     }
 
-    console.log("Cleaning manga data...");
+    console.log('Cleaning manga data...');
     const dataArray = Object.values(rawData);
     const cleanedData = cleanMangaData(dataArray);
-    console.log(
-      `Writing cleaned manga data to ${FILE_PATHS.cleanMangaData}...`
-    );
+    console.log(`Writing cleaned manga data to ${FILE_PATHS.cleanMangaData}...`);
     await writeJsonFile(FILE_PATHS.cleanMangaData, cleanedData);
 
     return cleanedData;
   } catch (error) {
-    console.error("Error during manga cleaning:", error);
+    console.error('Error during manga cleaning:', error);
     throw error;
   }
 };
@@ -136,7 +122,7 @@ export const cleanExistingMangaJsonFile = async (): Promise<
 // Filter logic imported from filterEngine.ts (see re-export above)
 
 export const storeUserWatchedDataInFile = async (): Promise<void> => {
-  const { parseUserXMLFile, writeJsonFile } = await import("./utils/file");
+  const { parseUserXMLFile, writeJsonFile } = await import('./utils/file');
   const { myanimelist } = await parseUserXMLFile();
 
   const storedJSON: WatchlistData = {
@@ -165,24 +151,26 @@ export const storeUserWatchedDataInFile = async (): Promise<void> => {
 export async function addAnimeToWatched(
   mal_ids: string[],
   status: WatchTag,
-  userId: string = "default",
+  userId: string = 'default',
   tagColor?: string
 ): Promise<void> {
   try {
-    const { upsertAnimeWatchlist } = await import("./db/watchlist");
+    const { upsertAnimeWatchlist } = await import('./db/watchlist');
     await upsertAnimeWatchlist(mal_ids, status, userId, tagColor);
   } catch (error) {
-    console.error("Error adding anime to watched list:", error);
+    console.error('Error adding anime to watched list:', error);
     throw error;
   }
 }
 
-export async function getWatchedAnimeList(userId: string = "default"): Promise<WatchlistData | null> {
+export async function getWatchedAnimeList(
+  userId: string = 'default'
+): Promise<WatchlistData | null> {
   try {
-    const { getAnimeWatchlist } = await import("./db/watchlist");
+    const { getAnimeWatchlist } = await import('./db/watchlist');
     return await getAnimeWatchlist(userId);
   } catch (error) {
-    console.error("Error reading watched anime list:", error);
+    console.error('Error reading watched anime list:', error);
     return null;
   }
 }
@@ -192,33 +180,32 @@ export async function getWatchedAnimeList(userId: string = "default"): Promise<W
 export async function addMangaToWatched(
   mal_ids: string[],
   status: WatchTag,
-  userId: string = "default",
+  userId: string = 'default',
   tagColor?: string
 ): Promise<void> {
   try {
-    const { upsertMangaWatchlist } = await import("./db/watchlist");
+    const { upsertMangaWatchlist } = await import('./db/watchlist');
     await upsertMangaWatchlist(mal_ids, status, userId, tagColor);
   } catch (error) {
-    console.error("Error adding manga to watched list:", error);
+    console.error('Error adding manga to watched list:', error);
     throw error;
   }
 }
 
-export async function getWatchedMangaList(userId: string = "default"): Promise<MangaWatchlistData | null> {
+export async function getWatchedMangaList(
+  userId: string = 'default'
+): Promise<MangaWatchlistData | null> {
   try {
-    const { getMangaWatchlist } = await import("./db/watchlist");
+    const { getMangaWatchlist } = await import('./db/watchlist');
     return await getMangaWatchlist(userId);
   } catch (error) {
-    console.error("Error reading watched manga list:", error);
+    console.error('Error reading watched manga list:', error);
     return null;
   }
 }
 
 // Manga filtering functions
-export const getMangaFieldValue = (
-  manga: MangaItem,
-  field: MangaField
-): unknown => {
+export const getMangaFieldValue = (manga: MangaItem, field: MangaField): unknown => {
   switch (field) {
     case MangaField.MalId:
       return manga.mal_id;
@@ -269,11 +256,9 @@ export const getMangaFieldValue = (
   }
 };
 
-export const filterMangaList = async (
-  filters: MangaFilter[]
-): Promise<MangaItem[]> => {
+export const filterMangaList = async (filters: MangaFilter[]): Promise<MangaItem[]> => {
   try {
-    const { mangaStore } = await import("./store/mangaStore");
+    const { mangaStore } = await import('./store/mangaStore');
     const mangaList = await mangaStore.getMangaList();
 
     return filterCollection(mangaList, filters, {
@@ -283,7 +268,7 @@ export const filterMangaList = async (
       isStringField: isMangaStringField,
     });
   } catch (error) {
-    console.error("Error during manga filtering:", error);
+    console.error('Error during manga filtering:', error);
     throw error;
   }
 };

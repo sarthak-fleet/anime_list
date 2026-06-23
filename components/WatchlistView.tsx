@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useEffect, useMemo, useState } from "react";
-import { Link } from "@tanstack/react-router";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ExternalLink } from "lucide-react";
-import type { EnrichedWatchlistItem } from "@/lib/types";
+import { useEffect, useMemo, useState } from 'react';
+import { Link } from '@tanstack/react-router';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { ExternalLink } from 'lucide-react';
+import type { EnrichedWatchlistItem } from '@/lib/types';
 import {
   addToWatchlist,
   deleteWatchlistTag,
@@ -19,12 +19,12 @@ import {
   removeFromWatchlist,
   saveWatchlistTag,
   updateWatchlistTag,
-} from "@/lib/api";
-import { useAuth } from "@/lib/auth";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { cn, getAnimeDetailHref } from "@/lib/utils";
-import { getDefaultTagColor, resolveTagColor, toRgba } from "@/lib/watchStatus";
+} from '@/lib/api';
+import { useAuth } from '@/lib/auth';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { cn, getAnimeDetailHref } from '@/lib/utils';
+import { getDefaultTagColor, resolveTagColor, toRgba } from '@/lib/watchStatus';
 
 function WatchlistSkeleton() {
   return (
@@ -45,65 +45,75 @@ function WatchlistSkeleton() {
 
 export default function WatchlistView() {
   const { user, loading: authLoading } = useAuth();
-  const [activeTab, setActiveTab] = useState("");
+  const [activeTab, setActiveTab] = useState('');
   const [showListSettings, setShowListSettings] = useState(false);
   const [showSyncTools, setShowSyncTools] = useState(false);
-  const [syncSource, setSyncSource] = useState<"mal" | "anilist" | "shelf">("mal");
-  const [importMode, setImportMode] = useState<"merge" | "replace" | "skip">("merge");
+  const [syncSource, setSyncSource] = useState<'mal' | 'anilist' | 'shelf'>('mal');
+  const [importMode, setImportMode] = useState<'merge' | 'replace' | 'skip'>('merge');
   const [importPreview, setImportPreview] = useState<{
     newCount?: number;
-    conflicts?: Array<{ malId: string; title?: string; incomingStatus: string; existingStatus: string }>;
+    conflicts?: Array<{
+      malId: string;
+      title?: string;
+      incomingStatus: string;
+      existingStatus: string;
+    }>;
   } | null>(null);
-  const [syncPayload, setSyncPayload] = useState("");
+  const [syncPayload, setSyncPayload] = useState('');
   const [syncResult, setSyncResult] = useState<string | null>(null);
-  const [newTagName, setNewTagName] = useState("");
-  const [newTagColor, setNewTagColor] = useState("#10b981");
+  const [newTagName, setNewTagName] = useState('');
+  const [newTagColor, setNewTagColor] = useState('#10b981');
   const [tagDrafts, setTagDrafts] = useState<Record<string, { tag: string; color: string }>>({});
   const queryClient = useQueryClient();
 
   const { data, isLoading, error, refetch, isFetching } = useQuery({
-    queryKey: ["watchlist", "enriched"],
+    queryKey: ['watchlist', 'enriched'],
     queryFn: () => getEnrichedWatchlist(),
     enabled: !!user,
   });
 
   const { data: tagsData } = useQuery({
-    queryKey: ["watchlist", "tags"],
+    queryKey: ['watchlist', 'tags'],
     queryFn: () => getWatchlistTags(),
     enabled: !!user,
   });
 
   const { data: recommendationsData } = useQuery({
-    queryKey: ["watchlist", "recommendations"],
+    queryKey: ['watchlist', 'recommendations'],
     queryFn: () => getTasteRecommendations(),
     enabled: !!user,
   });
 
   const statusMutation = useMutation({
-    mutationFn: ({ malId, status, tagColor }: { malId: string; status: string; tagColor?: string }) =>
-      addToWatchlist([Number(malId)], status, tagColor),
+    mutationFn: ({
+      malId,
+      status,
+      tagColor,
+    }: {
+      malId: string;
+      status: string;
+      tagColor?: string;
+    }) => addToWatchlist([Number(malId)], status, tagColor),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["watchlist"] });
-      queryClient.invalidateQueries({ queryKey: ["watchlist", "tags"] });
-      queryClient.invalidateQueries({ queryKey: ["watchlist", "recommendations"] });
+      queryClient.invalidateQueries({ queryKey: ['watchlist'] });
+      queryClient.invalidateQueries({ queryKey: ['watchlist', 'tags'] });
+      queryClient.invalidateQueries({ queryKey: ['watchlist', 'recommendations'] });
     },
   });
 
   const removeMutation = useMutation({
-    mutationFn: (malId: string) =>
-      removeFromWatchlist([Number(malId)]),
+    mutationFn: (malId: string) => removeFromWatchlist([Number(malId)]),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["watchlist"] });
-      queryClient.invalidateQueries({ queryKey: ["watchlist", "tags"] });
-      queryClient.invalidateQueries({ queryKey: ["watchlist", "recommendations"] });
+      queryClient.invalidateQueries({ queryKey: ['watchlist'] });
+      queryClient.invalidateQueries({ queryKey: ['watchlist', 'tags'] });
+      queryClient.invalidateQueries({ queryKey: ['watchlist', 'recommendations'] });
     },
   });
 
   const createTagMutation = useMutation({
-    mutationFn: ({ tag, color }: { tag: string; color?: string }) =>
-      saveWatchlistTag(tag, color),
+    mutationFn: ({ tag, color }: { tag: string; color?: string }) => saveWatchlistTag(tag, color),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["watchlist", "tags"] });
+      queryClient.invalidateQueries({ queryKey: ['watchlist', 'tags'] });
     },
   });
 
@@ -111,19 +121,18 @@ export default function WatchlistView() {
     mutationFn: ({ tagId, tag, color }: { tagId: string; tag?: string; color?: string }) =>
       updateWatchlistTag(tagId, { tag, color }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["watchlist", "tags"] });
-      queryClient.invalidateQueries({ queryKey: ["watchlist"] });
-      queryClient.invalidateQueries({ queryKey: ["watchlist", "recommendations"] });
+      queryClient.invalidateQueries({ queryKey: ['watchlist', 'tags'] });
+      queryClient.invalidateQueries({ queryKey: ['watchlist'] });
+      queryClient.invalidateQueries({ queryKey: ['watchlist', 'recommendations'] });
     },
   });
 
   const deleteTagMutation = useMutation({
-    mutationFn: ({ tagId }: { tagId: string }) =>
-      deleteWatchlistTag(tagId),
+    mutationFn: ({ tagId }: { tagId: string }) => deleteWatchlistTag(tagId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["watchlist", "tags"] });
-      queryClient.invalidateQueries({ queryKey: ["watchlist"] });
-      queryClient.invalidateQueries({ queryKey: ["watchlist", "recommendations"] });
+      queryClient.invalidateQueries({ queryKey: ['watchlist', 'tags'] });
+      queryClient.invalidateQueries({ queryKey: ['watchlist'] });
+      queryClient.invalidateQueries({ queryKey: ['watchlist', 'recommendations'] });
     },
   });
 
@@ -132,7 +141,7 @@ export default function WatchlistView() {
     onSuccess: (result) => {
       setImportPreview(result);
       setSyncResult(
-        `Preview: ${result.newCount ?? 0} new, ${result.conflicts?.length ?? 0} conflicts, ${result.entries.length} total rows, ${result.skipped} skipped.`,
+        `Preview: ${result.newCount ?? 0} new, ${result.conflicts?.length ?? 0} conflicts, ${result.entries.length} total rows, ${result.skipped} skipped.`
       );
     },
   });
@@ -141,10 +150,12 @@ export default function WatchlistView() {
     mutationFn: () => applyWatchlistImport(syncSource, syncPayload, importMode),
     onSuccess: (result) => {
       setImportPreview(null);
-      setSyncResult(`Imported ${result.imported ?? result.entries.length} items (${result.mode ?? importMode}).`);
-      queryClient.invalidateQueries({ queryKey: ["watchlist"] });
-      queryClient.invalidateQueries({ queryKey: ["watchlist", "tags"] });
-      queryClient.invalidateQueries({ queryKey: ["watchlist", "recommendations"] });
+      setSyncResult(
+        `Imported ${result.imported ?? result.entries.length} items (${result.mode ?? importMode}).`
+      );
+      queryClient.invalidateQueries({ queryKey: ['watchlist'] });
+      queryClient.invalidateQueries({ queryKey: ['watchlist', 'tags'] });
+      queryClient.invalidateQueries({ queryKey: ['watchlist', 'recommendations'] });
     },
   });
 
@@ -172,12 +183,12 @@ export default function WatchlistView() {
   const recommendations = recommendationsData?.recommendations ?? [];
   const tagColorMap = useMemo(
     () => new Map(tags.map((tag) => [tag.tag, resolveTagColor(tag.tag, tag.color)])),
-    [tags],
+    [tags]
   );
 
   useEffect(() => {
     if (!tags.length) {
-      setActiveTab("");
+      setActiveTab('');
       return;
     }
     if (!activeTab || !tags.some((tag) => tag.tag === activeTab)) {
@@ -212,8 +223,18 @@ export default function WatchlistView() {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
-          <svg className="h-8 w-8 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+          <svg
+            className="h-8 w-8 text-muted-foreground"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={1.5}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
+            />
           </svg>
         </div>
         <h3 className="text-lg font-medium text-foreground mb-1">Sign in to view your watchlist</h3>
@@ -229,22 +250,19 @@ export default function WatchlistView() {
     return (
       <div className="flex flex-col items-start gap-3">
         <p className="text-destructive text-sm">
-          We couldn&apos;t load your watchlist. Check your connection and try
-          again.
+          We couldn&apos;t load your watchlist. Check your connection and try again.
         </p>
         <button
           onClick={() => refetch()}
           disabled={isFetching}
           className="px-3 py-1.5 text-sm rounded border hover:opacity-80 disabled:opacity-50"
         >
-          {isFetching ? "Retrying…" : "Try again"}
+          {isFetching ? 'Retrying…' : 'Try again'}
         </button>
       </div>
     );
 
-  const filtered = activeTab
-    ? items.filter((item) => item.watchStatus === activeTab)
-    : items;
+  const filtered = activeTab ? items.filter((item) => item.watchStatus === activeTab) : items;
 
   return (
     <div className="space-y-5">
@@ -258,8 +276,8 @@ export default function WatchlistView() {
                 key={tag.id}
                 onClick={() => setActiveTab(tag.tag)}
                 className={cn(
-                  "inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border transition-all duration-200",
-                  isActive ? "" : "text-muted-foreground hover:text-foreground"
+                  'inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border transition-all duration-200',
+                  isActive ? '' : 'text-muted-foreground hover:text-foreground'
                 )}
                 style={
                   isActive
@@ -280,21 +298,19 @@ export default function WatchlistView() {
               </button>
             );
           })}
-          {tags.length === 0 && (
-            <span className="text-sm text-muted-foreground">No tags yet</span>
-          )}
+          {tags.length === 0 && <span className="text-sm text-muted-foreground">No tags yet</span>}
         </div>
         <button
           onClick={() => setShowListSettings((prev) => !prev)}
           className="h-8 rounded-md px-3 text-xs border border-border hover:bg-accent"
         >
-          {showListSettings ? "Close Settings" : "List Settings"}
+          {showListSettings ? 'Close Settings' : 'List Settings'}
         </button>
         <button
           onClick={() => setShowSyncTools((prev) => !prev)}
           className="h-8 rounded-md px-3 text-xs border border-border hover:bg-accent"
         >
-          {showSyncTools ? "Close Sync" : "Import / Export"}
+          {showSyncTools ? 'Close Sync' : 'Import / Export'}
         </button>
       </div>
 
@@ -304,12 +320,13 @@ export default function WatchlistView() {
             <div>
               <h3 className="text-sm font-medium text-foreground">Import / Export</h3>
               <p className="mt-1 text-xs text-muted-foreground">
-                Export Shelf JSON/CSV backups, or import MAL XML, MAL CSV, AniList JSON, or Shelf JSON.
+                Export Shelf JSON/CSV backups, or import MAL XML, MAL CSV, AniList JSON, or Shelf
+                JSON.
               </p>
             </div>
             <select
               value={syncSource}
-              onChange={(event) => setSyncSource(event.target.value as "mal" | "anilist" | "shelf")}
+              onChange={(event) => setSyncSource(event.target.value as 'mal' | 'anilist' | 'shelf')}
               className="h-8 rounded-md border border-input bg-background px-2 text-xs"
             >
               <option value="mal">MyAnimeList XML / CSV</option>
@@ -328,7 +345,7 @@ export default function WatchlistView() {
             <button
               onClick={async () => {
                 await downloadShelfWatchlistCsv();
-                setSyncResult("Downloaded shelf-watchlist.csv");
+                setSyncResult('Downloaded shelf-watchlist.csv');
               }}
               className="h-8 rounded-md px-3 text-xs border border-border hover:bg-accent"
             >
@@ -346,9 +363,9 @@ export default function WatchlistView() {
             value={syncPayload}
             onChange={(event) => setSyncPayload(event.target.value)}
             placeholder={
-              syncSource === "mal"
-                ? "<myanimelist>...</myanimelist> or mal_id,title,status CSV"
-                : syncSource === "shelf"
+              syncSource === 'mal'
+                ? '<myanimelist>...</myanimelist> or mal_id,title,status CSV'
+                : syncSource === 'shelf'
                   ? '{"version":1,"anime":[...]}'
                   : '{"lists":[...]}'
             }
@@ -358,7 +375,9 @@ export default function WatchlistView() {
             <label className="text-xs text-muted-foreground">Import mode</label>
             <select
               value={importMode}
-              onChange={(event) => setImportMode(event.target.value as "merge" | "replace" | "skip")}
+              onChange={(event) =>
+                setImportMode(event.target.value as 'merge' | 'replace' | 'skip')
+              }
               className="h-8 rounded-md border border-input bg-background px-2 text-xs"
             >
               <option value="merge">Merge (skip conflicts)</option>
@@ -384,7 +403,8 @@ export default function WatchlistView() {
           </div>
           {importPreview?.conflicts && importPreview.conflicts.length > 0 && (
             <div className="rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-xs text-muted-foreground">
-              {importPreview.conflicts.length} conflict(s) detected. Use Replace to overwrite, or Merge/Skip to avoid silent overwrites.
+              {importPreview.conflicts.length} conflict(s) detected. Use Replace to overwrite, or
+              Merge/Skip to avoid silent overwrites.
               <ul className="mt-2 space-y-1">
                 {importPreview.conflicts.slice(0, 5).map((row) => (
                   <li key={row.malId}>
@@ -427,10 +447,10 @@ export default function WatchlistView() {
                   { tag, color: newTagColor },
                   {
                     onSuccess: () => {
-                      setNewTagName("");
+                      setNewTagName('');
                       setActiveTab(tag);
                     },
-                  },
+                  }
                 );
               }}
               disabled={createTagMutation.isPending}
@@ -491,7 +511,11 @@ export default function WatchlistView() {
                   </button>
                   <button
                     onClick={() => {
-                      if (!window.confirm(`Delete list "${tag.tag}"? Items will be moved automatically.`)) {
+                      if (
+                        !window.confirm(
+                          `Delete list "${tag.tag}"? Items will be moved automatically.`
+                        )
+                      ) {
                         return;
                       }
                       deleteTagMutation.mutate({ tagId: tag.id });
@@ -535,11 +559,17 @@ export default function WatchlistView() {
             </div>
 
             <div className="mt-4 flex flex-wrap gap-2">
-              {[...tasteProfile.favoriteGenres, ...tasteProfile.favoriteThemes].slice(0, 8).map((signal) => (
-                <Badge key={`${signal.name}-${signal.weight}`} variant="outline" className="text-[11px]">
-                  {signal.name} · {signal.weight}
-                </Badge>
-              ))}
+              {[...tasteProfile.favoriteGenres, ...tasteProfile.favoriteThemes]
+                .slice(0, 8)
+                .map((signal) => (
+                  <Badge
+                    key={`${signal.name}-${signal.weight}`}
+                    variant="outline"
+                    className="text-[11px]"
+                  >
+                    {signal.name} · {signal.weight}
+                  </Badge>
+                ))}
               {tasteProfile.sampledTitles === 0 && (
                 <span className="text-sm text-muted-foreground">
                   Add anime to your watchlist to build a profile.
@@ -597,12 +627,15 @@ export default function WatchlistView() {
 
       {filtered.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
-          {activeTab ? `No anime with tag "${activeTab}"` : "No anime in watchlist yet"}
+          {activeTab ? `No anime with tag "${activeTab}"` : 'No anime in watchlist yet'}
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           {filtered.map((item) => (
-            <Card key={item.mal_id} className="overflow-hidden flex flex-row p-0 hover:border-primary/30 transition-colors">
+            <Card
+              key={item.mal_id}
+              className="overflow-hidden flex flex-row p-0 hover:border-primary/30 transition-colors"
+            >
               {item.image ? (
                 <Link
                   to={getAnimeDetailHref(item.mal_id)}
@@ -651,10 +684,16 @@ export default function WatchlistView() {
                 <div className="flex gap-3 text-xs text-muted-foreground">
                   {item.score && (
                     <span>
-                      <span className={cn(
-                        "font-medium",
-                        item.score >= 8 ? "text-emerald-400" : item.score >= 6 ? "text-yellow-400" : "text-red-400"
-                      )}>
+                      <span
+                        className={cn(
+                          'font-medium',
+                          item.score >= 8
+                            ? 'text-emerald-400'
+                            : item.score >= 6
+                              ? 'text-yellow-400'
+                              : 'text-red-400'
+                        )}
+                      >
                         {item.score}
                       </span>
                     </span>
@@ -666,7 +705,11 @@ export default function WatchlistView() {
                 {item.genres.length > 0 && (
                   <div className="flex flex-wrap gap-1">
                     {item.genres.slice(0, 4).map((g) => (
-                      <Badge key={g} variant="outline" className="text-[10px] font-normal px-1.5 py-0">
+                      <Badge
+                        key={g}
+                        variant="outline"
+                        className="text-[10px] font-normal px-1.5 py-0"
+                      >
                         {g}
                       </Badge>
                     ))}
@@ -683,13 +726,13 @@ export default function WatchlistView() {
                   <select
                     value={item.watchStatus}
                     onChange={(e) => {
-                      if (e.target.value === "REMOVE") {
+                      if (e.target.value === 'REMOVE') {
                         removeMutation.mutate(item.mal_id);
                         return;
                       }
-                      if (e.target.value === "__NEW_TAG__") {
-                        const customTag = window.prompt("New tag name");
-                        if (!customTag || !customTag.trim()) return;
+                      if (e.target.value === '__NEW_TAG__') {
+                        const customTag = window.prompt('New tag name');
+                        if (!customTag?.trim()) return;
                         const tag = customTag.trim();
                         const color = getDefaultTagColor(tag);
                         statusMutation.mutate({ malId: item.mal_id, status: tag, tagColor: color });
@@ -706,10 +749,14 @@ export default function WatchlistView() {
                     className="h-7 rounded-lg border border-input bg-secondary px-2 text-xs"
                   >
                     {tags.map((tag) => (
-                      <option key={tag.tag} value={tag.tag}>{tag.tag}</option>
+                      <option key={tag.tag} value={tag.tag}>
+                        {tag.tag}
+                      </option>
                     ))}
                     <option value="__NEW_TAG__">+ New tag...</option>
-                    <option value="REMOVE" className="text-destructive">Remove from watchlist</option>
+                    <option value="REMOVE" className="text-destructive">
+                      Remove from watchlist
+                    </option>
                   </select>
                 </div>
               </div>

@@ -2,15 +2,15 @@
  * Pure filter/matching logic with zero file-system or native module dependencies.
  * Safe to import from Cloudflare Workers.
  */
-import { AnimeField, FilterAction } from "./config";
+import { AnimeField, FilterAction } from './config';
 import {
-  AnimeItem,
-  Filter,
+  type AnimeItem,
+  type Filter,
   isNumericField,
   isArrayField,
   isStringField,
-} from "./types/anime";
-import { animeStore } from "./store/animeStore";
+} from './types/anime';
+import { animeStore } from './store/animeStore';
 
 // ── Primitive matchers ─────────────────────────────────────────────────
 
@@ -58,53 +58,41 @@ const matchesStringFilter = (
   filterValue: unknown,
   action: FilterAction
 ): boolean => {
-  if (typeof value !== "string") return false;
+  if (typeof value !== 'string') return false;
 
   if (action === FilterAction.Equals) {
-    return typeof filterValue === "string" && value === filterValue;
+    return typeof filterValue === 'string' && value === filterValue;
   }
 
   if (action === FilterAction.Contains) {
     return (
-      typeof filterValue === "string" &&
-      value.toLowerCase().includes(filterValue.toLowerCase())
+      typeof filterValue === 'string' && value.toLowerCase().includes(filterValue.toLowerCase())
     );
   }
 
   if (action === FilterAction.Excludes) {
-    if (typeof filterValue === "string") {
+    if (typeof filterValue === 'string') {
       return !value.toLowerCase().includes(filterValue.toLowerCase());
     }
 
     if (Array.isArray(filterValue)) {
       const needles = filterValue
-        .filter(
-          (needle): needle is string =>
-            typeof needle === "string" && needle.length > 0
-        )
+        .filter((needle): needle is string => typeof needle === 'string' && needle.length > 0)
         .map((needle) => needle.toLowerCase());
       if (needles.length === 0) {
         return true;
       }
-      return needles.every(
-        (needle) => !value.toLowerCase().includes(needle)
-      );
+      return needles.every((needle) => !value.toLowerCase().includes(needle));
     }
 
     return false;
   }
 
-  if (
-    action === FilterAction.IncludesAll ||
-    action === FilterAction.IncludesAny
-  ) {
+  if (action === FilterAction.IncludesAll || action === FilterAction.IncludesAny) {
     if (!Array.isArray(filterValue)) return false;
     const haystack = value.toLowerCase();
     const needles = filterValue
-      .filter(
-        (needle): needle is string =>
-          typeof needle === "string" && needle.length > 0
-      )
+      .filter((needle): needle is string => typeof needle === 'string' && needle.length > 0)
       .map((needle) => needle.toLowerCase());
     if (needles.length === 0) {
       return true;
@@ -122,7 +110,7 @@ const matchesStringFilter = (
 export const matchesFilter = <
   TItem,
   TField,
-  TFilter extends { field: TField; value: unknown; action: FilterAction }
+  TFilter extends { field: TField; value: unknown; action: FilterAction },
 >(
   item: TItem,
   filter: TFilter,
@@ -137,11 +125,7 @@ export const matchesFilter = <
   if (value === undefined) return false;
 
   if (ctx.isNumericField(filter.field)) {
-    return evaluateNumericFilter(
-      value as number,
-      filter.value as number,
-      filter.action
-    );
+    return evaluateNumericFilter(value as number, filter.value as number, filter.action);
   }
 
   if (ctx.isArrayField(filter.field)) {
@@ -162,7 +146,7 @@ export const matchesFilter = <
 export const filterCollection = <
   TItem,
   TField,
-  TFilter extends { field: TField; value: unknown; action: FilterAction }
+  TFilter extends { field: TField; value: unknown; action: FilterAction },
 >(
   items: TItem[],
   filters: TFilter[],
@@ -172,17 +156,11 @@ export const filterCollection = <
     isArrayField: (field: TField) => boolean;
     isStringField: (field: TField) => boolean;
   }
-): TItem[] =>
-  items.filter((item) =>
-    filters.every((filter) => matchesFilter(item, filter, ctx))
-  );
+): TItem[] => items.filter((item) => filters.every((filter) => matchesFilter(item, filter, ctx)));
 
 // ── Anime field accessor ───────────────────────────────────────────────
 
-export const getAnimeFieldValue = (
-  anime: AnimeItem,
-  field: AnimeField
-): unknown => {
+export const getAnimeFieldValue = (anime: AnimeItem, field: AnimeField): unknown => {
   switch (field) {
     case AnimeField.MalId:
       return anime.mal_id;
@@ -235,22 +213,11 @@ const matchesAnimeFilter = (
     isStringField: (field: AnimeField) => boolean;
   }
 ): boolean => {
-  if (
-    filter.field === AnimeField.Title &&
-    filter.action === FilterAction.Contains
-  ) {
+  if (filter.field === AnimeField.Title && filter.action === FilterAction.Contains) {
     const searchValue = filter.value as string;
-    const titleMatch = matchesStringFilter(
-      anime.title,
-      searchValue,
-      FilterAction.Contains
-    );
+    const titleMatch = matchesStringFilter(anime.title, searchValue, FilterAction.Contains);
     const englishTitleMatch = anime.title_english
-      ? matchesStringFilter(
-          anime.title_english,
-          searchValue,
-          FilterAction.Contains
-        )
+      ? matchesStringFilter(anime.title_english, searchValue, FilterAction.Contains)
       : false;
     return titleMatch || englishTitleMatch;
   }
@@ -260,9 +227,7 @@ const matchesAnimeFilter = (
 
 // ── Public API ─────────────────────────────────────────────────────────
 
-export const filterAnimeList = async (
-  filters: Filter[]
-): Promise<AnimeItem[]> => {
+export const filterAnimeList = async (filters: Filter[]): Promise<AnimeItem[]> => {
   const animeList = await animeStore.getAnimeList();
 
   return animeList.filter((anime) =>

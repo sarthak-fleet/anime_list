@@ -1,35 +1,35 @@
-import { Link } from "@tanstack/react-router";
-import { SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE } from "@/lib/brand";
+import { Link } from '@tanstack/react-router';
+import { SITE_NAME, SITE_TAGLINE } from '@/lib/brand';
 
 const FEATURES = [
   {
-    title: "Filter across every dimension",
-    body: "Score, type, genre, year, airing status, member count — combine them in one query. Filter state lives in the URL, so searches are shareable.",
+    title: 'Filter across every dimension',
+    body: 'Score, type, genre, year, airing status, member count — combine them in one query. Filter state lives in the URL, so searches are shareable.',
   },
   {
     title: "A watchlist that's yours",
     body: "Track what you're watching, completed, deferred, or skipping. It's private to your Google account.",
   },
   {
-    title: "Ranking that surfaces hidden gems",
-    body: "A log-scale popularity formula keeps mega-popular titles from burying everything else.",
+    title: 'Ranking that surfaces hidden gems',
+    body: 'A log-scale popularity formula keeps mega-popular titles from burying everything else.',
   },
 ];
 
 const STEPS = [
   {
-    n: "1",
-    title: "Search or filter",
-    body: "Start with a title search, or stack filters until the results match what you want.",
+    n: '1',
+    title: 'Search or filter',
+    body: 'Start with a title search, or stack filters until the results match what you want.',
   },
   {
-    n: "2",
-    title: "Add to your list",
-    body: "Sign in with Google and tag any title. Your watchlist syncs across sessions.",
+    n: '2',
+    title: 'Add to your list',
+    body: 'Sign in with Google and tag any title. Your watchlist syncs across sessions.',
   },
   {
-    n: "3",
-    title: "Stay current",
+    n: '3',
+    title: 'Stay current',
     body: "Data syncs daily from MyAnimeList via Jikan. Check the schedule for what's airing.",
   },
 ];
@@ -42,12 +42,10 @@ export default function AboutPage() {
       </Link>
 
       <section className="mt-6">
-        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-          {SITE_TAGLINE}
-        </h1>
+        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{SITE_TAGLINE}</h1>
         <p className="mt-4 max-w-prose text-base leading-7 text-muted-foreground">
-          {SITE_NAME} is a calm way to explore anime and manga on top of public
-          MyAnimeList data — search, filter, compare stats, and keep a private list.
+          {SITE_NAME} is a calm way to explore anime and manga on top of public MyAnimeList data —
+          search, filter, compare stats, and keep a private list.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
           <Link

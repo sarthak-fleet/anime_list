@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-import "dotenv/config";
-import { updateLatestTwoSeasonData } from "../api";
-import { runAllMigrations } from "../db/migrations";
-import { animeStore } from "../store/animeStore";
+import 'dotenv/config';
+import { updateLatestTwoSeasonData } from '../api';
+import { runAllMigrations } from '../db/migrations';
+import { animeStore } from '../store/animeStore';
 
 /**
  * Cron job script to update anime data in Turso database

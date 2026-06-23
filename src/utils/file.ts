@@ -1,4 +1,4 @@
-import { promises as fs } from "fs";
+import { promises as fs } from 'node:fs';
 
 /**
  * Delay execution for a specified number of milliseconds
@@ -11,7 +11,7 @@ export const delay = (ms: number): Promise<void> =>
  */
 export const readJsonFile = async <T>(filename: string): Promise<T | null> => {
   try {
-    const data = await fs.readFile(filename, "utf8");
+    const data = await fs.readFile(filename, 'utf8');
     return JSON.parse(data);
   } catch (error) {
     console.error(`Error reading ${filename}:`, error);
@@ -22,10 +22,7 @@ export const readJsonFile = async <T>(filename: string): Promise<T | null> => {
 /**
  * Write data to a JSON file
  */
-export const writeJsonFile = async <T>(
-  filename: string,
-  data: T
-): Promise<boolean> => {
+export const writeJsonFile = async <T>(filename: string, data: T): Promise<boolean> => {
   try {
     await fs.writeFile(filename, JSON.stringify(data, null, 2));
     return true;
@@ -38,10 +35,10 @@ export const writeJsonFile = async <T>(
 /**
  * Returns JSON array of user watched anime
  */
-export const parseUserXMLFile = async (fileName: string = "test.xml") => {
+export const parseUserXMLFile = async (fileName: string = 'test.xml') => {
   try {
-    const data = await fs.readFile(fileName, "utf8");
-    const { default: parser } = await import("xml2json");
+    const data = await fs.readFile(fileName, 'utf8');
+    const { default: parser } = await import('xml2json');
     const stringifiedJson = parser.toJson(data);
     return JSON.parse(stringifiedJson);
   } catch (error) {

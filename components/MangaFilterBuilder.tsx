@@ -1,34 +1,16 @@
-"use client";
+'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  useQueryState,
-  parseAsString,
-  parseAsArrayOf,
-  parseAsInteger,
-  parseAsJson,
-} from "nuqs";
-import { useQuery } from "@tanstack/react-query";
-import type { SearchFilter, SearchResponse } from "@/lib/types";
-import {
-  getMangaFields,
-  getMangaFilterActions,
-  getWatchlistTags,
-  searchManga,
-} from "@/lib/api";
-import { useAuth } from "@/lib/auth";
-import { trackCoreAction } from "@/lib/analytics";
-import {
-  DEFAULT_FILTER_ACTIONS,
-  DEFAULT_MANGA_FIELD_OPTIONS,
-} from "@/lib/filterMetadata";
-import FilterRow from "./FilterRow";
-import MangaResultsGrid, { MangaResultsGridSkeleton } from "./MangaResultsGrid";
-import {
-  MANGA_SORT_OPTIONS,
-  POPULARITY_PRESETS,
-  QUICK_GENRES,
-} from "./discover/constants";
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useQueryState, parseAsString, parseAsArrayOf, parseAsInteger, parseAsJson } from 'nuqs';
+import { useQuery } from '@tanstack/react-query';
+import type { SearchFilter, SearchResponse } from '@/lib/types';
+import { getMangaFields, getMangaFilterActions, getWatchlistTags, searchManga } from '@/lib/api';
+import { useAuth } from '@/lib/auth';
+import { trackCoreAction } from '@/lib/analytics';
+import { DEFAULT_FILTER_ACTIONS, DEFAULT_MANGA_FIELD_OPTIONS } from '@/lib/filterMetadata';
+import FilterRow from './FilterRow';
+import MangaResultsGrid, { MangaResultsGridSkeleton } from './MangaResultsGrid';
+import { MANGA_SORT_OPTIONS, POPULARITY_PRESETS, QUICK_GENRES } from './discover/constants';
 import {
   ActiveFilterChip,
   DiscoverClearButton,
@@ -38,13 +20,13 @@ import {
   DiscoverToggleButton,
   FilterSection,
   GenrePills,
-} from "./discover/ui";
-import { cn } from "@/lib/utils";
-import { resolveTagColor, toRgba } from "@/lib/watchStatus";
+} from './discover/ui';
+import { cn } from '@/lib/utils';
+import { resolveTagColor, toRgba } from '@/lib/watchStatus';
 
 const DEFAULT_FILTER: SearchFilter = {
-  field: "score",
-  action: "GREATER_THAN_OR_EQUALS",
+  field: 'score',
+  action: 'GREATER_THAN_OR_EQUALS',
   value: 7,
 };
 const DEFAULT_PAGE_SIZE = 40;
@@ -56,15 +38,15 @@ const filtersParser = parseAsJson<SearchFilter[]>((v) => {
 });
 
 function normalizeFilter(filter: SearchFilter): SearchFilter {
-  if (filter.field !== "type") return filter;
+  if (filter.field !== 'type') return filter;
   const value = Array.isArray(filter.value)
-    ? filter.value[0] ?? ""
-    : typeof filter.value === "string"
+    ? (filter.value[0] ?? '')
+    : typeof filter.value === 'string'
       ? filter.value
-      : "";
+      : '';
   return {
     ...filter,
-    action: filter.action === "EXCLUDES" ? "EXCLUDES" : "EQUALS",
+    action: filter.action === 'EXCLUDES' ? 'EXCLUDES' : 'EQUALS',
     value,
   };
 }
@@ -74,54 +56,51 @@ function isFilterValuePresent(filter: SearchFilter): boolean {
   if (Array.isArray(normalizedFilter.value)) {
     return normalizedFilter.value.length > 0;
   }
-  return normalizedFilter.value !== "" && normalizedFilter.value !== undefined;
+  return normalizedFilter.value !== '' && normalizedFilter.value !== undefined;
 }
 
 const ACTION_LABEL: Record<string, string> = {
-  EQUALS: "=",
-  GREATER_THAN: ">",
-  GREATER_THAN_OR_EQUALS: "≥",
-  LESS_THAN: "<",
-  LESS_THAN_OR_EQUALS: "≤",
-  INCLUDES_ALL: "includes",
-  INCLUDES_ANY: "any of",
-  EXCLUDES: "excl.",
-  CONTAINS: "~",
+  EQUALS: '=',
+  GREATER_THAN: '>',
+  GREATER_THAN_OR_EQUALS: '≥',
+  LESS_THAN: '<',
+  LESS_THAN_OR_EQUALS: '≤',
+  INCLUDES_ALL: 'includes',
+  INCLUDES_ANY: 'any of',
+  EXCLUDES: 'excl.',
+  CONTAINS: '~',
 };
 
 function formatFilterChip(filter: SearchFilter): string {
-  const words = filter.field.split("_");
-  const field = [words[0][0].toUpperCase() + words[0].slice(1), ...words.slice(1)].join(" ");
-  const op = ACTION_LABEL[filter.action] ?? filter.action.toLowerCase().replace(/_/g, " ");
-  const value = Array.isArray(filter.value) ? filter.value.join(", ") : String(filter.value);
+  const words = filter.field.split('_');
+  const field = [words[0][0].toUpperCase() + words[0].slice(1), ...words.slice(1)].join(' ');
+  const op = ACTION_LABEL[filter.action] ?? filter.action.toLowerCase().replace(/_/g, ' ');
+  const value = Array.isArray(filter.value) ? filter.value.join(', ') : String(filter.value);
   return `${field} ${op} ${value}`;
 }
 
 export default function MangaFilterBuilder() {
   const { user } = useAuth();
-  const [filters, setFilters] = useQueryState("mf", filtersParser.withDefault([]));
-  const [searchText, setSearchText] = useQueryState("q", parseAsString.withDefault(""));
-  const [sortBy, setSortBy] = useQueryState("sort", parseAsString.withDefault("score"));
+  const [filters, setFilters] = useQueryState('mf', filtersParser.withDefault([]));
+  const [searchText, setSearchText] = useQueryState('q', parseAsString.withDefault(''));
+  const [sortBy, setSortBy] = useQueryState('sort', parseAsString.withDefault('score'));
   const [minMembers, setMinMembers] = useQueryState(
-    "min",
-    parseAsInteger.withDefault(DEFAULT_MIN_MEMBERS),
+    'min',
+    parseAsInteger.withDefault(DEFAULT_MIN_MEMBERS)
   );
   const [selectedGenres, setSelectedGenres] = useQueryState(
-    "genres",
-    parseAsArrayOf(parseAsString).withDefault([]),
+    'genres',
+    parseAsArrayOf(parseAsString).withDefault([])
   );
   const [hideWatched, setHideWatched] = useQueryState(
-    "wt",
-    parseAsArrayOf(parseAsString).withDefault([]),
+    'wt',
+    parseAsArrayOf(parseAsString).withDefault([])
   );
   const [pagesize, setPagesize] = useQueryState(
-    "pagesize",
-    parseAsInteger.withDefault(DEFAULT_PAGE_SIZE),
+    'pagesize',
+    parseAsInteger.withDefault(DEFAULT_PAGE_SIZE)
   );
-  const [currentPage, setCurrentPage] = useQueryState(
-    "page",
-    parseAsInteger.withDefault(1),
-  );
+  const [currentPage, setCurrentPage] = useQueryState('page', parseAsInteger.withDefault(1));
 
   const normalizedFilters = filters.map(normalizeFilter);
   const activeAdvancedFilters = normalizedFilters.filter(isFilterValuePresent);
@@ -139,30 +118,28 @@ export default function MangaFilterBuilder() {
     debounceRef.current = setTimeout(() => {
       setSearchText(value);
       setCurrentPage(1);
-      if (value.trim()) trackCoreAction("manga_search");
+      if (value.trim()) trackCoreAction('manga_search');
     }, 300);
   };
 
-  const [showAdvanced, setShowAdvanced] = useState(
-    () => activeAdvancedFilters.length > 0,
-  );
+  const [showAdvanced, setShowAdvanced] = useState(() => activeAdvancedFilters.length > 0);
 
   const resetPage = () => setCurrentPage(1);
 
   const { data: fields } = useQuery({
-    queryKey: ["manga", "fields"],
+    queryKey: ['manga', 'fields'],
     queryFn: getMangaFields,
     initialData: DEFAULT_MANGA_FIELD_OPTIONS,
   });
 
   const { data: actions } = useQuery({
-    queryKey: ["manga", "filterActions"],
+    queryKey: ['manga', 'filterActions'],
     queryFn: getMangaFilterActions,
     initialData: DEFAULT_FILTER_ACTIONS,
   });
 
   const { data: watchlistTagsData } = useQuery({
-    queryKey: ["watchlist", "tags"],
+    queryKey: ['watchlist', 'tags'],
     queryFn: () => getWatchlistTags(),
     enabled: !!user,
   });
@@ -175,24 +152,24 @@ export default function MangaFilterBuilder() {
 
     if (selectedGenres.length > 0) {
       allFilters.push({
-        field: "genres",
-        action: "INCLUDES_ALL",
+        field: 'genres',
+        action: 'INCLUDES_ALL',
         value: selectedGenres,
       });
     }
 
     if (searchText.trim()) {
       allFilters.push({
-        field: "title",
-        action: "CONTAINS",
+        field: 'title',
+        action: 'CONTAINS',
         value: searchText.trim(),
       });
     }
 
     if (minMembers > 0) {
       allFilters.push({
-        field: "members",
-        action: "GREATER_THAN_OR_EQUALS",
+        field: 'members',
+        action: 'GREATER_THAN_OR_EQUALS',
         value: minMembers,
       });
     }
@@ -221,8 +198,14 @@ export default function MangaFilterBuilder() {
 
   const filterKey = JSON.stringify(buildSearchOpts());
 
-  const { data, isLoading: loading, isFetching, error, refetch } = useQuery<SearchResponse>({
-    queryKey: ["manga", "search", filterKey],
+  const {
+    data,
+    isLoading: loading,
+    isFetching,
+    error,
+    refetch,
+  } = useQuery<SearchResponse>({
+    queryKey: ['manga', 'search', filterKey],
     queryFn: () => {
       const { filters: f, opts } = buildSearchOpts();
       return searchManga(f, opts);
@@ -233,22 +216,20 @@ export default function MangaFilterBuilder() {
 
   const toggleGenre = (genre: string) => {
     setSelectedGenres((prev) =>
-      prev.includes(genre) ? prev.filter((g) => g !== genre) : [...prev, genre],
+      prev.includes(genre) ? prev.filter((g) => g !== genre) : [...prev, genre]
     );
     resetPage();
   };
 
   const toggleHideWatched = (status: string) => {
     setHideWatched((prev) =>
-      prev.includes(status) ? prev.filter((s) => s !== status) : [...prev, status],
+      prev.includes(status) ? prev.filter((s) => s !== status) : [...prev, status]
     );
     resetPage();
   };
 
   const updateFilter = (index: number, filter: SearchFilter) => {
-    setFilters((prev) =>
-      prev.map((f, i) => (i === index ? normalizeFilter(filter) : f)),
-    );
+    setFilters((prev) => prev.map((f, i) => (i === index ? normalizeFilter(filter) : f)));
     resetPage();
   };
 
@@ -265,11 +246,11 @@ export default function MangaFilterBuilder() {
 
   const clearAll = () => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    setInputValue("");
+    setInputValue('');
     setSelectedGenres([]);
-    setSearchText("");
+    setSearchText('');
     setFilters([]);
-    setSortBy("score");
+    setSortBy('score');
     setMinMembers(DEFAULT_MIN_MEMBERS);
     setHideWatched([]);
     setPagesize(DEFAULT_PAGE_SIZE);
@@ -283,12 +264,12 @@ export default function MangaFilterBuilder() {
         value: String(p.value),
         label: p.label,
       })),
-    [],
+    []
   );
 
   const sortOptions = useMemo(
     () => MANGA_SORT_OPTIONS.map((o) => ({ value: o.value, label: o.label })),
-    [],
+    []
   );
 
   const popularityLabel = POPULARITY_PRESETS.find((p) => p.value === minMembers)?.label;
@@ -349,11 +330,7 @@ export default function MangaFilterBuilder() {
 
         <div className="space-y-4 border-t border-border px-4 py-4">
           <FilterSection label="Genres">
-            <GenrePills
-              genres={QUICK_GENRES}
-              selected={selectedGenres}
-              onToggle={toggleGenre}
-            />
+            <GenrePills genres={QUICK_GENRES} selected={selectedGenres} onToggle={toggleGenre} />
           </FilterSection>
 
           {user && watchlistTags.length > 0 && (
@@ -370,7 +347,7 @@ export default function MangaFilterBuilder() {
                       className="rounded-full border px-3 py-1 text-xs font-medium transition-colors"
                       style={{
                         borderColor: active ? color : toRgba(color, 0.25),
-                        backgroundColor: active ? toRgba(color, 0.15) : "transparent",
+                        backgroundColor: active ? toRgba(color, 0.15) : 'transparent',
                         color: active ? color : toRgba(color, 0.7),
                       }}
                     >
@@ -424,18 +401,14 @@ export default function MangaFilterBuilder() {
               <ActiveFilterChip
                 label={`Search: ${searchText.trim()}`}
                 onRemove={() => {
-                  setInputValue("");
-                  setSearchText("");
+                  setInputValue('');
+                  setSearchText('');
                   resetPage();
                 }}
               />
             )}
             {selectedGenres.map((genre) => (
-              <ActiveFilterChip
-                key={genre}
-                label={genre}
-                onRemove={() => toggleGenre(genre)}
-              />
+              <ActiveFilterChip key={genre} label={genre} onRemove={() => toggleGenre(genre)} />
             ))}
             {minMembers !== DEFAULT_MIN_MEMBERS && popularityLabel && (
               <ActiveFilterChip
@@ -467,7 +440,7 @@ export default function MangaFilterBuilder() {
       {data && (
         <p className="text-sm text-muted-foreground">
           {totalFiltered.toLocaleString()} titles
-          {isFetching && " · updating…"}
+          {isFetching && ' · updating…'}
         </p>
       )}
 
@@ -480,7 +453,7 @@ export default function MangaFilterBuilder() {
             disabled={isFetching}
             className="text-sm font-medium text-destructive underline-offset-2 hover:underline disabled:opacity-50"
           >
-            {isFetching ? "Retrying…" : "Retry"}
+            {isFetching ? 'Retrying…' : 'Retry'}
           </button>
         </div>
       )}
@@ -489,7 +462,7 @@ export default function MangaFilterBuilder() {
         {loading && !data ? (
           <MangaResultsGridSkeleton />
         ) : data ? (
-          <div className={cn("transition-opacity duration-300", isFetching && "opacity-50")}>
+          <div className={cn('transition-opacity duration-300', isFetching && 'opacity-50')}>
             <MangaResultsGrid results={data} />
 
             {totalPages > 1 && (
@@ -498,7 +471,7 @@ export default function MangaFilterBuilder() {
                   type="button"
                   onClick={() => {
                     setCurrentPage(currentPage - 1);
-                    window.scrollTo({ top: 0, behavior: "smooth" });
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
                   disabled={!hasPrev || isFetching}
                   className="text-sm font-medium text-muted-foreground hover:text-foreground disabled:opacity-40"
@@ -512,7 +485,7 @@ export default function MangaFilterBuilder() {
                   type="button"
                   onClick={() => {
                     setCurrentPage(currentPage + 1);
-                    window.scrollTo({ top: 0, behavior: "smooth" });
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
                   disabled={!hasNext || isFetching}
                   className="text-sm font-medium text-muted-foreground hover:text-foreground disabled:opacity-40"

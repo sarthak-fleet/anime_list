@@ -3,26 +3,24 @@ import {
   DISTRIBUTION_RANGES,
   MANGA_DISTRIBUTION_RANGES,
   PERCENTILE_FIELDS,
-} from "./config";
-import { AnimeItem } from "./types/anime";
-import { MangaItem } from "./types/manga";
-import {
+} from './config';
+import type { AnimeItem } from './types/anime';
+import type { MangaItem } from './types/manga';
+import type {
   AnimeStats,
   Distribution,
   FieldCount,
   Percentiles,
   TypeDistribution,
-} from "./types/statistics";
+} from './types/statistics';
 import {
   getDistribution,
   getFieldCounts,
   getPercentiles,
   getTypeDistribution,
-} from "./utils/statistics";
+} from './utils/statistics';
 
-export const getAnimeStats = async (
-  animeList: AnimeItem[]
-): Promise<AnimeStats> => {
+export const getAnimeStats = async (animeList: AnimeItem[]): Promise<AnimeStats> => {
   const data = animeList;
 
   const percentiles: Record<string, Percentiles> = {};
@@ -32,21 +30,9 @@ export const getAnimeStats = async (
 
   const distributions = {
     score: getDistribution(data, DISTRIBUTION_RANGES.score, AnimeField.Score),
-    members: getDistribution(
-      data,
-      DISTRIBUTION_RANGES.members,
-      AnimeField.Members
-    ),
-    favorites: getDistribution(
-      data,
-      DISTRIBUTION_RANGES.favorites,
-      AnimeField.Favorites
-    ),
-    yearDistribution: getDistribution(
-      data,
-      DISTRIBUTION_RANGES.years,
-      AnimeField.Year
-    ),
+    members: getDistribution(data, DISTRIBUTION_RANGES.members, AnimeField.Members),
+    favorites: getDistribution(data, DISTRIBUTION_RANGES.favorites, AnimeField.Favorites),
+    yearDistribution: getDistribution(data, DISTRIBUTION_RANGES.years, AnimeField.Year),
   };
 
   return {
@@ -63,10 +49,9 @@ export const getAnimeStats = async (
   };
 };
 
-export const getMangaStats = async (
-  mangaList: MangaItem[] | null = null
-): Promise<AnimeStats> => {
-  const data = mangaList ?? (await import("./store/mangaStore").then((m) => m.mangaStore.getMangaList()));
+export const getMangaStats = async (mangaList: MangaItem[] | null = null): Promise<AnimeStats> => {
+  const data =
+    mangaList ?? (await import('./store/mangaStore').then((m) => m.mangaStore.getMangaList()));
   const asAnimeShape = data as unknown as AnimeItem[];
 
   const percentiles: Record<string, Percentiles> = {};
@@ -76,11 +61,7 @@ export const getMangaStats = async (
 
   const distributions = {
     score: getDistribution(asAnimeShape, MANGA_DISTRIBUTION_RANGES.score, AnimeField.Score),
-    members: getDistribution(
-      asAnimeShape,
-      MANGA_DISTRIBUTION_RANGES.members,
-      AnimeField.Members
-    ),
+    members: getDistribution(asAnimeShape, MANGA_DISTRIBUTION_RANGES.members, AnimeField.Members),
     favorites: getDistribution(
       asAnimeShape,
       MANGA_DISTRIBUTION_RANGES.favorites,
@@ -107,10 +88,4 @@ export const getMangaStats = async (
   };
 };
 
-export type {
-  AnimeStats,
-  Distribution,
-  FieldCount,
-  Percentiles,
-  TypeDistribution,
-};
+export type { AnimeStats, Distribution, FieldCount, Percentiles, TypeDistribution };

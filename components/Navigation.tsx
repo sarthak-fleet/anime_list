@@ -1,45 +1,45 @@
-"use client";
+'use client';
 
-import { Link, useRouterState } from "@tanstack/react-router";
-import { useAuth } from "@/lib/auth";
-import { SITE_NAME } from "@/lib/brand";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Link, useRouterState } from '@tanstack/react-router';
+import { useAuth } from '@/lib/auth';
+import { SITE_NAME } from '@/lib/brand';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import GoogleSignInButton from "./GoogleSignInButton";
-import { cn } from "@/lib/utils";
-import { Menu } from "lucide-react";
+} from '@/components/ui/dropdown-menu';
+import GoogleSignInButton from './GoogleSignInButton';
+import { cn } from '@/lib/utils';
+import { Menu } from 'lucide-react';
 
 const animeLinks = [
-  { href: "/discover", label: "Discover" },
-  { href: "/search", label: "Search" },
-  { href: "/quiz", label: "Quiz" },
-  { href: "/stats", label: "Stats" },
-  { href: "/watchlist", label: "Watchlist" },
-  { href: "/alerts", label: "Alerts" },
-  { href: "/collections", label: "Collections" },
-  { href: "/schedule", label: "Schedule" },
-  { href: "/changelog", label: "Changelog" },
+  { href: '/discover', label: 'Discover' },
+  { href: '/search', label: 'Search' },
+  { href: '/quiz', label: 'Quiz' },
+  { href: '/stats', label: 'Stats' },
+  { href: '/watchlist', label: 'Watchlist' },
+  { href: '/alerts', label: 'Alerts' },
+  { href: '/collections', label: 'Collections' },
+  { href: '/schedule', label: 'Schedule' },
+  { href: '/changelog', label: 'Changelog' },
 ];
 
 const mangaLinks = [
-  { href: "/manga", label: "Discover" },
-  { href: "/manga/stats", label: "Stats" },
-  { href: "/manga/watchlist", label: "Watchlist" },
-  { href: "/changelog", label: "Changelog" },
+  { href: '/manga', label: 'Discover' },
+  { href: '/manga/stats', label: 'Stats' },
+  { href: '/manga/watchlist', label: 'Watchlist' },
+  { href: '/changelog', label: 'Changelog' },
 ];
 
 function isMangaPath(pathname: string) {
-  return pathname === "/manga" || pathname.startsWith("/manga/");
+  return pathname === '/manga' || pathname.startsWith('/manga/');
 }
 
 function isActiveLink(pathname: string, href: string) {
-  if (href === "/" || href === "/manga") {
+  if (href === '/' || href === '/manga') {
     return pathname === href;
   }
   return pathname === href || pathname.startsWith(`${href}/`);
@@ -52,9 +52,9 @@ export default function Navigation() {
   const links = mangaMode ? mangaLinks : animeLinks;
   // Site brand link goes to the marketing landing; section toggle goes to the
   // anime/manga app root.
-  const homeHref = "/";
-  const animeSectionHref = "/search";
-  const mangaSectionHref = "/manga";
+  const homeHref = '/';
+  const animeSectionHref = '/search';
+  const mangaSectionHref = '/manga';
 
   return (
     <nav className="sticky top-0 z-50 border-b border-border/80 bg-background/90 backdrop-blur-md">
@@ -70,8 +70,10 @@ export default function Navigation() {
           <Link
             to={animeSectionHref}
             className={cn(
-              "px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
-              !mangaMode ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
+              'px-3 py-1.5 text-sm font-medium rounded-md transition-colors',
+              !mangaMode
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
             )}
           >
             Anime
@@ -79,8 +81,10 @@ export default function Navigation() {
           <Link
             to={mangaSectionHref}
             className={cn(
-              "px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
-              mangaMode ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
+              'px-3 py-1.5 text-sm font-medium rounded-md transition-colors',
+              mangaMode
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
             )}
           >
             Manga
@@ -95,10 +99,8 @@ export default function Navigation() {
                 key={link.href}
                 to={link.href}
                 className={cn(
-                  "px-3 py-2 text-sm font-medium rounded-md transition-colors",
-                  active
-                    ? "text-primary"
-                    : "text-muted-foreground hover:text-foreground",
+                  'px-3 py-2 text-sm font-medium rounded-md transition-colors',
+                  active ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
                 )}
               >
                 {link.label}
@@ -117,12 +119,18 @@ export default function Navigation() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="bg-popover border-border">
               <DropdownMenuItem asChild>
-                <Link to={animeSectionHref} className={cn("w-full cursor-pointer text-sm", !mangaMode ? "text-primary" : "")}>
+                <Link
+                  to={animeSectionHref}
+                  className={cn('w-full cursor-pointer text-sm', !mangaMode ? 'text-primary' : '')}
+                >
                   Anime
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link to={mangaSectionHref} className={cn("w-full cursor-pointer text-sm", mangaMode ? "text-primary" : "")}>
+                <Link
+                  to={mangaSectionHref}
+                  className={cn('w-full cursor-pointer text-sm', mangaMode ? 'text-primary' : '')}
+                >
                   Manga
                 </Link>
               </DropdownMenuItem>
@@ -132,10 +140,7 @@ export default function Navigation() {
                   <DropdownMenuItem key={link.href} asChild>
                     <Link
                       to={link.href}
-                      className={cn(
-                        "w-full cursor-pointer text-sm",
-                        active ? "text-primary" : "",
-                      )}
+                      className={cn('w-full cursor-pointer text-sm', active ? 'text-primary' : '')}
                     >
                       {link.label}
                     </Link>
@@ -152,15 +157,13 @@ export default function Navigation() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="gap-2 h-9 px-2">
                   <Avatar className="h-7 w-7">
-                    {user.picture && (
-                      <AvatarImage src={user.picture} alt={user.name} />
-                    )}
+                    {user.picture && <AvatarImage src={user.picture} alt={user.name} />}
                     <AvatarFallback className="text-xs bg-primary/15 text-primary">
                       {user.name.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <span className="hidden sm:inline text-sm text-muted-foreground">
-                    {user.name.split(" ")[0]}
+                    {user.name.split(' ')[0]}
                   </span>
                 </Button>
               </DropdownMenuTrigger>

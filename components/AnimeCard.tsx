@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import { useMemo, useState } from "react";
-import { Link } from "@tanstack/react-router";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ExternalLink } from "lucide-react";
-import type { AnimeSummary } from "@/lib/types";
-import { addToWatchlist, addToSchedule, getWatchlist, getWatchlistTags } from "@/lib/api";
-import { useAuth } from "@/lib/auth";
-import { trackActivated, trackCoreAction } from "@/lib/analytics";
-import { Badge } from "@/components/ui/badge";
-import { DEFAULT_WATCH_TAGS, resolveTagColor } from "@/lib/watchStatus";
-import { getAnimeDetailHref } from "@/lib/utils";
+import { useMemo, useState } from 'react';
+import { Link } from '@tanstack/react-router';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { ExternalLink } from 'lucide-react';
+import type { AnimeSummary } from '@/lib/types';
+import { addToWatchlist, addToSchedule, getWatchlist, getWatchlistTags } from '@/lib/api';
+import { useAuth } from '@/lib/auth';
+import { trackActivated, trackCoreAction } from '@/lib/analytics';
+import { Badge } from '@/components/ui/badge';
+import { DEFAULT_WATCH_TAGS, resolveTagColor } from '@/lib/watchStatus';
+import { getAnimeDetailHref } from '@/lib/utils';
 
 export default function AnimeCard({
   anime,
@@ -21,20 +21,20 @@ export default function AnimeCard({
 }) {
   const [scheduled, setScheduled] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
-  const [customTag, setCustomTag] = useState("");
-  const [customColor, setCustomColor] = useState("#10b981");
+  const [customTag, setCustomTag] = useState('');
+  const [customColor, setCustomColor] = useState('#10b981');
   const [optimisticStatus, setOptimisticStatus] = useState<string | null>(null);
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
   const { data: watchlistData } = useQuery({
-    queryKey: ["watchlist"],
+    queryKey: ['watchlist'],
     queryFn: () => getWatchlist(),
     enabled: !!user,
   });
 
   const { data: tagsData } = useQuery({
-    queryKey: ["watchlist", "tags"],
+    queryKey: ['watchlist', 'tags'],
     queryFn: () => getWatchlistTags(),
     enabled: !!user,
   });
@@ -49,20 +49,15 @@ export default function AnimeCard({
   }, [availableTags, currentStatus]);
 
   const mutation = useMutation({
-    mutationFn: ({
-      status,
-      tagColor,
-    }: {
-      status: string;
-      tagColor?: string;
-    }) => addToWatchlist([anime.id], status, tagColor),
+    mutationFn: ({ status, tagColor }: { status: string; tagColor?: string }) =>
+      addToWatchlist([anime.id], status, tagColor),
     onSuccess: () => {
-      setCustomTag("");
-      queryClient.invalidateQueries({ queryKey: ["watchlist"] });
-      queryClient.invalidateQueries({ queryKey: ["watchlist", "tags"] });
+      setCustomTag('');
+      queryClient.invalidateQueries({ queryKey: ['watchlist'] });
+      queryClient.invalidateQueries({ queryKey: ['watchlist', 'tags'] });
       // Owner analytics: adding an anime to the watchlist is the core action,
       // and the first add is the user's `activated` milestone.
-      trackCoreAction("watchlist_add");
+      trackCoreAction('watchlist_add');
       trackActivated(user?.id);
     },
   });
@@ -72,7 +67,7 @@ export default function AnimeCard({
     onSuccess: () => {
       setScheduled(true);
       setShowMenu(false);
-      queryClient.invalidateQueries({ queryKey: ["schedule"] });
+      queryClient.invalidateQueries({ queryKey: ['schedule'] });
     },
   });
 
@@ -86,7 +81,7 @@ export default function AnimeCard({
         onError: () => {
           setOptimisticStatus(previousStatus);
         },
-      },
+      }
     );
   };
 
@@ -103,13 +98,15 @@ export default function AnimeCard({
             <img
               src={anime.image}
               alt={title}
-              loading={priority ? "eager" : "lazy"}
-              fetchPriority={priority ? "high" : "auto"}
+              loading={priority ? 'eager' : 'lazy'}
+              fetchPriority={priority ? 'high' : 'auto'}
               className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-white/40 text-[10px] font-bold tracking-widest uppercase">No image</span>
+              <span className="text-white/40 text-[10px] font-bold tracking-widest uppercase">
+                No image
+              </span>
             </div>
           )}
 
@@ -119,9 +116,7 @@ export default function AnimeCard({
           {/* Score badge */}
           {anime.score > 0 && (
             <div className="absolute top-2 left-2 bg-background/80 backdrop-blur-md rounded-md px-2 py-1 border border-border">
-              <span className="text-xs font-medium text-primary">
-                {anime.score.toFixed(1)}
-              </span>
+              <span className="text-xs font-medium text-primary">{anime.score.toFixed(1)}</span>
             </div>
           )}
 
@@ -160,17 +155,14 @@ export default function AnimeCard({
       {/* Title and metadata below poster */}
       <div className="mt-2 flex items-start gap-2 justify-between">
         <div className="min-w-0 flex-1">
-          <Link
-            to={detailHref}
-            className="block w-full"
-          >
+          <Link to={detailHref} className="block w-full">
             <h4 className="font-medium text-base text-foreground group-hover:text-primary transition-colors line-clamp-2 leading-snug">
               {title}
             </h4>
           </Link>
           <div className="flex items-center gap-2 mt-1">
             <p className="text-xs text-muted-foreground">
-              <span>{anime.genres[0] || "Unknown"}</span>
+              <span>{anime.genres[0] || 'Unknown'}</span>
               {anime.year > 0 && <span> • </span>}
               {anime.year > 0 && <span>{anime.year}</span>}
               {memberLabel && <span> • </span>}
@@ -199,18 +191,25 @@ export default function AnimeCard({
                 setShowMenu(!showMenu);
               }}
               disabled={mutation.isPending}
-              aria-label={currentStatus ? `Edit watchlist status: ${currentStatus}` : "Add to watchlist"}
+              aria-label={
+                currentStatus ? `Edit watchlist status: ${currentStatus}` : 'Add to watchlist'
+              }
               className="h-8 min-w-8 rounded-sm bg-primary text-primary-foreground flex items-center justify-center hover:scale-105 transition-transform px-2"
               style={
                 currentStatusColor
-                  ? { backgroundColor: currentStatusColor, boxShadow: `0 0 15px ${currentStatusColor}66` }
+                  ? {
+                      backgroundColor: currentStatusColor,
+                      boxShadow: `0 0 15px ${currentStatusColor}66`,
+                    }
                   : undefined
               }
             >
               {mutation.isPending ? (
                 <span className="animate-spin text-sm">...</span>
               ) : currentStatus ? (
-                <span className="text-[10px] font-black uppercase tracking-widest">{currentStatus.slice(0, 1)}</span>
+                <span className="text-[10px] font-black uppercase tracking-widest">
+                  {currentStatus.slice(0, 1)}
+                </span>
               ) : (
                 <span className="font-black text-sm">+</span>
               )}
@@ -221,27 +220,23 @@ export default function AnimeCard({
                   const color = resolveTagColor(tag.tag, tag.color);
                   const isCurrentTag = currentStatus === tag.tag;
                   return (
-                  <button
-                    key={tag.tag}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleAdd(tag.tag, tag.color);
-                    }}
-                    className="flex items-center justify-between gap-2 w-full px-4 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-white/5 transition-colors text-left"
-                  >
-                    <span className="flex items-center gap-3">
-                      <span
-                        className="h-2 w-2 rounded-full"
-                        style={{ backgroundColor: color, color: color }}
-                      />
-                      <span className="text-white/80">{tag.tag}</span>
-                    </span>
-                    {isCurrentTag && (
-                      <span className="text-[9px] text-primary">
-                        Current
+                    <button
+                      key={tag.tag}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleAdd(tag.tag, tag.color);
+                      }}
+                      className="flex items-center justify-between gap-2 w-full px-4 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-white/5 transition-colors text-left"
+                    >
+                      <span className="flex items-center gap-3">
+                        <span
+                          className="h-2 w-2 rounded-full"
+                          style={{ backgroundColor: color, color: color }}
+                        />
+                        <span className="text-white/80">{tag.tag}</span>
                       </span>
-                    )}
-                  </button>
+                      {isCurrentTag && <span className="text-[9px] text-primary">Current</span>}
+                    </button>
                   );
                 })}
                 <div className="border-t border-outline/10">
@@ -253,10 +248,20 @@ export default function AnimeCard({
                     disabled={scheduleMutation.isPending || scheduled}
                     className="flex items-center gap-3 w-full px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-white/80 hover:bg-white/5 transition-colors text-left disabled:opacity-50"
                   >
-                    <svg className="h-3 w-3 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                    <svg
+                      className="h-3 w-3 text-primary"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
+                      />
                     </svg>
-                    {scheduled ? "Scheduled" : "Schedule"}
+                    {scheduled ? 'Scheduled' : 'Schedule'}
                   </button>
                 </div>
                 <div className="border-t border-outline/10 px-3 pt-3 pb-2 space-y-2">
@@ -298,7 +303,7 @@ export default function AnimeCard({
             className="text-[9px] font-black tracking-widest uppercase rounded-sm border-none"
             style={{
               backgroundColor: currentStatusColor ?? resolveTagColor(currentStatus),
-              color: "#131313",
+              color: '#131313',
             }}
           >
             {currentStatus}

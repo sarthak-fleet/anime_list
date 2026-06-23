@@ -1,21 +1,21 @@
 #!/usr/bin/env node
-import axios from "axios";
-import dotenv from "dotenv";
-import { API_CONFIG } from "../config";
-import { getAllAnime, upsertAnimeBatchNoSummary } from "../db/animeData";
-import { runAllMigrations } from "../db/migrations";
+import axios from 'axios';
+import dotenv from 'dotenv';
+import { API_CONFIG } from '../config';
+import { getAllAnime, upsertAnimeBatchNoSummary } from '../db/animeData';
+import { runAllMigrations } from '../db/migrations';
 import {
   applyAniListStatusUpdates,
   applyDirectStatusUpdates,
   type AnimeStatusChange,
   type AniListStatusRecord,
   type DirectStatusRecord,
-} from "../services/anilistStatusSync";
+} from '../services/anilistStatusSync';
 
-dotenv.config({ path: ".env.local" });
+dotenv.config({ path: '.env.local' });
 dotenv.config();
 
-const ANILIST_GRAPHQL_URL = "https://graphql.anilist.co";
+const ANILIST_GRAPHQL_URL = 'https://graphql.anilist.co';
 const QUERY = `
   query ($ids: [Int], $perPage: Int) {
     Page(page: 1, perPage: $perPage) {
@@ -32,7 +32,7 @@ const DEFAULT_BATCH_SIZE = 50;
 const DEFAULT_ANILIST_DELAY_MS = 2200;
 const DEFAULT_JIKAN_DELAY_MS = API_CONFIG.rateLimit;
 const DEFAULT_MAX_RETRIES = 5;
-const CURRENTLY_AIRING_STATUS = "Currently Airing";
+const CURRENTLY_AIRING_STATUS = 'Currently Airing';
 
 interface JikanAnimeResponse {
   data?: {
@@ -42,8 +42,7 @@ interface JikanAnimeResponse {
   };
 }
 
-const delay = (ms: number): Promise<void> =>
-  new Promise((resolve) => setTimeout(resolve, ms));
+const delay = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
 function getNumberArg(name: string, fallback: number): number {
   const prefix = `${name}=`;
@@ -59,7 +58,7 @@ function getNumberArg(name: string, fallback: number): number {
 function ensureRequiredEnv(): void {
   if (!process.env.TURSO_DATABASE_URL || !process.env.TURSO_AUTH_TOKEN) {
     throw new Error(
-      "TURSO_DATABASE_URL and TURSO_AUTH_TOKEN are required to run the quarterly anime sync."
+      'TURSO_DATABASE_URL and TURSO_AUTH_TOKEN are required to run the quarterly anime sync.'
     );
   }
 }
@@ -88,8 +87,8 @@ async function fetchAniListBatch(
         },
         {
           headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
           },
           timeout: 30000,
         }
@@ -102,10 +101,9 @@ async function fetchAniListBatch(
       }
 
       const statusCode = error.response?.status;
-      const retryAfterSeconds = Number(error.response?.headers["retry-after"]);
+      const retryAfterSeconds = Number(error.response?.headers['retry-after']);
       const shouldRetry =
-        attempt < maxRetries &&
-        (!statusCode || statusCode === 429 || statusCode >= 500);
+        attempt < maxRetries && (!statusCode || statusCode === 429 || statusCode >= 500);
 
       if (!shouldRetry) {
         throw error;
@@ -113,11 +111,11 @@ async function fetchAniListBatch(
 
       const delayMs =
         Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0
-        ? retryAfterSeconds * 1000
-        : Math.min(60000, baseDelayMs * 2 ** attempt);
+          ? retryAfterSeconds * 1000
+          : Math.min(60000, baseDelayMs * 2 ** attempt);
 
       console.warn(
-        `AniList batch failed with ${statusCode ?? "network error"} on attempt ${attempt}/${maxRetries}. Retrying in ${delayMs}ms...`
+        `AniList batch failed with ${statusCode ?? 'network error'} on attempt ${attempt}/${maxRetries}. Retrying in ${delayMs}ms...`
       );
       await delay(delayMs);
     }
@@ -133,15 +131,12 @@ async function fetchJikanAnimeByMalId(
 ): Promise<DirectStatusRecord | null> {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      const response = await axios.get<JikanAnimeResponse>(
-        `${API_CONFIG.baseUrl}/anime/${malId}`,
-        {
-          headers: {
-            Accept: "application/json",
-          },
-          timeout: 30000,
-        }
-      );
+      const response = await axios.get<JikanAnimeResponse>(`${API_CONFIG.baseUrl}/anime/${malId}`, {
+        headers: {
+          Accept: 'application/json',
+        },
+        timeout: 30000,
+      });
 
       const anime = response.data.data;
       if (!anime) {
@@ -163,10 +158,9 @@ async function fetchJikanAnimeByMalId(
         return null;
       }
 
-      const retryAfterSeconds = Number(error.response?.headers["retry-after"]);
+      const retryAfterSeconds = Number(error.response?.headers['retry-after']);
       const shouldRetry =
-        attempt < maxRetries &&
-        (!statusCode || statusCode === 429 || statusCode >= 500);
+        attempt < maxRetries && (!statusCode || statusCode === 429 || statusCode >= 500);
 
       if (!shouldRetry) {
         throw error;
@@ -178,7 +172,7 @@ async function fetchJikanAnimeByMalId(
           : Math.min(60000, baseDelayMs * 2 ** attempt);
 
       console.warn(
-        `Jikan lookup for ${malId} failed with ${statusCode ?? "network error"} on attempt ${attempt}/${maxRetries}. Retrying in ${delayMs}ms...`
+        `Jikan lookup for ${malId} failed with ${statusCode ?? 'network error'} on attempt ${attempt}/${maxRetries}. Retrying in ${delayMs}ms...`
       );
       await delay(delayMs);
     }
@@ -191,14 +185,17 @@ function hasTrackedChange(
   originalAnime: { status?: string; episodes?: number },
   nextAnime: { status?: string; episodes?: number }
 ): boolean {
-  return (
-    originalAnime.status !== nextAnime.status ||
-    originalAnime.episodes !== nextAnime.episodes
-  );
+  return originalAnime.status !== nextAnime.status || originalAnime.episodes !== nextAnime.episodes;
 }
 
 function toFinalChange(
-  originalAnime: { mal_id: number; title: string; title_english?: string; status?: string; episodes?: number },
+  originalAnime: {
+    mal_id: number;
+    title: string;
+    title_english?: string;
+    status?: string;
+    episodes?: number;
+  },
   nextAnime: { mal_id: number; status?: string; episodes?: number }
 ): AnimeStatusChange | null {
   if (!hasTrackedChange(originalAnime, nextAnime)) {
@@ -208,18 +205,11 @@ function toFinalChange(
   return {
     malId: originalAnime.mal_id,
     title: originalAnime.title_english || originalAnime.title,
-    previousStatus:
-      originalAnime.status !== nextAnime.status ? originalAnime.status : undefined,
-    nextStatus:
-      originalAnime.status !== nextAnime.status ? nextAnime.status : undefined,
+    previousStatus: originalAnime.status !== nextAnime.status ? originalAnime.status : undefined,
+    nextStatus: originalAnime.status !== nextAnime.status ? nextAnime.status : undefined,
     previousEpisodes:
-      originalAnime.episodes !== nextAnime.episodes
-        ? originalAnime.episodes
-        : undefined,
-    nextEpisodes:
-      originalAnime.episodes !== nextAnime.episodes
-        ? nextAnime.episodes
-        : undefined,
+      originalAnime.episodes !== nextAnime.episodes ? originalAnime.episodes : undefined,
+    nextEpisodes: originalAnime.episodes !== nextAnime.episodes ? nextAnime.episodes : undefined,
   };
 }
 
@@ -227,40 +217,31 @@ async function main() {
   ensureRequiredEnv();
 
   const startedAt = Date.now();
-  const isDryRun = process.argv.includes("--dry-run");
-  const batchSize = getNumberArg("--batch-size", DEFAULT_BATCH_SIZE);
-  const aniListDelayMs = getNumberArg("--anilist-delay-ms", DEFAULT_ANILIST_DELAY_MS);
-  const jikanDelayMs = getNumberArg("--jikan-delay-ms", DEFAULT_JIKAN_DELAY_MS);
-  const limit = getNumberArg("--limit", 0);
-  const skipJikanFallback = process.argv.includes("--skip-jikan-fallback");
+  const isDryRun = process.argv.includes('--dry-run');
+  const batchSize = getNumberArg('--batch-size', DEFAULT_BATCH_SIZE);
+  const aniListDelayMs = getNumberArg('--anilist-delay-ms', DEFAULT_ANILIST_DELAY_MS);
+  const jikanDelayMs = getNumberArg('--jikan-delay-ms', DEFAULT_JIKAN_DELAY_MS);
+  const limit = getNumberArg('--limit', 0);
+  const skipJikanFallback = process.argv.includes('--skip-jikan-fallback');
 
   console.log(`[${new Date().toISOString()}] Starting quarterly anime sync...`);
   console.log(
-    `Mode=${isDryRun ? "dry-run" : "write"}, batchSize=${batchSize}, aniListDelayMs=${aniListDelayMs}, jikanDelayMs=${jikanDelayMs}, jikanFallback=${skipJikanFallback ? "off" : "on"}${limit ? `, limit=${limit}` : ""}`
+    `Mode=${isDryRun ? 'dry-run' : 'write'}, batchSize=${batchSize}, aniListDelayMs=${aniListDelayMs}, jikanDelayMs=${jikanDelayMs}, jikanFallback=${skipJikanFallback ? 'off' : 'on'}${limit ? `, limit=${limit}` : ''}`
   );
 
   await runAllMigrations();
 
   const animeList = await getAllAnime();
   const scopedAnimeList = limit > 0 ? animeList.slice(0, limit) : animeList;
-  const originalAnimeMap = new Map(
-    scopedAnimeList.map((anime) => [anime.mal_id, anime] as const)
-  );
+  const originalAnimeMap = new Map(scopedAnimeList.map((anime) => [anime.mal_id, anime] as const));
   const allMissingMalIds: number[] = [];
   const changedAnimeMap = new Map<number, (typeof scopedAnimeList)[number]>();
 
   for (let offset = 0; offset < scopedAnimeList.length; offset += batchSize) {
     const batch = scopedAnimeList.slice(offset, offset + batchSize);
     const malIds = batch.map((anime) => anime.mal_id);
-    const updates = await fetchAniListBatch(
-      malIds,
-      DEFAULT_MAX_RETRIES,
-      aniListDelayMs
-    );
-    const { changedAnime, missingMalIds } = applyAniListStatusUpdates(
-      batch,
-      updates
-    );
+    const updates = await fetchAniListBatch(malIds, DEFAULT_MAX_RETRIES, aniListDelayMs);
+    const { changedAnime, missingMalIds } = applyAniListStatusUpdates(batch, updates);
 
     for (const anime of changedAnime) {
       const originalAnime = originalAnimeMap.get(anime.mal_id);
@@ -287,8 +268,7 @@ async function main() {
     : scopedAnimeList.filter((anime) => {
         const currentAnime = changedAnimeMap.get(anime.mal_id) ?? anime;
         return (
-          currentAnime.status === CURRENTLY_AIRING_STATUS ||
-          aniListMissingSet.has(anime.mal_id)
+          currentAnime.status === CURRENTLY_AIRING_STATUS || aniListMissingSet.has(anime.mal_id)
         );
       });
   const jikanNotFoundMalIds: number[] = [];
@@ -309,10 +289,7 @@ async function main() {
       if (!jikanUpdate) {
         jikanNotFoundMalIds.push(candidate.mal_id);
       } else {
-        const { changedAnime } = applyDirectStatusUpdates(
-          [currentAnime],
-          [jikanUpdate]
-        );
+        const { changedAnime } = applyDirectStatusUpdates([currentAnime], [jikanUpdate]);
         if (changedAnime.length > 0) {
           const nextAnime = changedAnime[0];
           const originalAnime = originalAnimeMap.get(nextAnime.mal_id);
@@ -325,10 +302,7 @@ async function main() {
       }
 
       const processed = index + 1;
-      if (
-        processed % 25 === 0 ||
-        processed === jikanFallbackCandidates.length
-      ) {
+      if (processed % 25 === 0 || processed === jikanFallbackCandidates.length) {
         console.log(
           `Jikan verified ${processed}/${jikanFallbackCandidates.length} fallback candidates. Changed=${changedAnimeMap.size}, jikanMissing=${jikanNotFoundMalIds.length}`
         );
@@ -360,14 +334,14 @@ async function main() {
     for (const change of finalChanges.slice(0, 20)) {
       const statusDelta =
         change.previousStatus !== change.nextStatus
-          ? `status: ${change.previousStatus ?? "unset"} -> ${change.nextStatus ?? "unset"}`
-          : "";
+          ? `status: ${change.previousStatus ?? 'unset'} -> ${change.nextStatus ?? 'unset'}`
+          : '';
       const episodesDelta =
         change.previousEpisodes !== change.nextEpisodes
-          ? `episodes: ${change.previousEpisodes ?? "unset"} -> ${change.nextEpisodes ?? "unset"}`
-          : "";
+          ? `episodes: ${change.previousEpisodes ?? 'unset'} -> ${change.nextEpisodes ?? 'unset'}`
+          : '';
       const pieces = [statusDelta, episodesDelta].filter(Boolean);
-      console.log(`- ${change.title} (${change.malId}): ${pieces.join(", ")}`);
+      console.log(`- ${change.title} (${change.malId}): ${pieces.join(', ')}`);
     }
   }
 

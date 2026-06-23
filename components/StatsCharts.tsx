@@ -1,15 +1,9 @@
-"use client";
+'use client';
 
-import type { AnimeStats, Distribution, FieldCount } from "@/lib/types";
-import { Card } from "@/components/ui/card";
+import type { AnimeStats, Distribution, FieldCount } from '@/lib/types';
+import { Card } from '@/components/ui/card';
 
-function BarChart({
-  title,
-  items,
-}: {
-  title: string;
-  items: { label: string; value: number }[];
-}) {
+function BarChart({ title, items }: { title: string; items: { label: string; value: number }[] }) {
   const max = Math.max(...items.map((i) => i.value), 1);
 
   return (
@@ -37,11 +31,7 @@ function BarChart({
   );
 }
 
-function PercentileTable({
-  percentiles,
-}: {
-  percentiles: AnimeStats["percentiles"];
-}) {
+function PercentileTable({ percentiles }: { percentiles: AnimeStats['percentiles'] }) {
   const keys = Object.keys(percentiles);
   if (keys.length === 0) return null;
 
@@ -90,7 +80,7 @@ function fieldCountToItems(data: FieldCount[]) {
 
 export default function StatsCharts({
   stats,
-  totalLabel = "Total anime",
+  totalLabel = 'Total anime',
 }: {
   stats: AnimeStats;
   totalLabel?: string;
@@ -102,18 +92,12 @@ export default function StatsCharts({
       </p>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <BarChart
-          title="Score Distribution"
-          items={distributionToItems(stats.scoreDistribution)}
-        />
+        <BarChart title="Score Distribution" items={distributionToItems(stats.scoreDistribution)} />
         <BarChart
           title="Members Distribution"
           items={distributionToItems(stats.membersDistribution)}
         />
-        <BarChart
-          title="Year Distribution"
-          items={distributionToItems(stats.yearDistribution)}
-        />
+        <BarChart title="Year Distribution" items={distributionToItems(stats.yearDistribution)} />
         <BarChart
           title="Favorites Distribution"
           items={distributionToItems(stats.favoritesDistribution)}
@@ -125,18 +109,9 @@ export default function StatsCharts({
             value: t.count,
           }))}
         />
-        <BarChart
-          title="Genre Counts"
-          items={fieldCountToItems(stats.genreCounts)}
-        />
-        <BarChart
-          title="Theme Counts"
-          items={fieldCountToItems(stats.themeCounts)}
-        />
-        <BarChart
-          title="Demographic Counts"
-          items={fieldCountToItems(stats.demographicCounts)}
-        />
+        <BarChart title="Genre Counts" items={fieldCountToItems(stats.genreCounts)} />
+        <BarChart title="Theme Counts" items={fieldCountToItems(stats.themeCounts)} />
+        <BarChart title="Demographic Counts" items={fieldCountToItems(stats.demographicCounts)} />
       </div>
 
       <PercentileTable percentiles={stats.percentiles} />

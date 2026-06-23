@@ -1,25 +1,31 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import StatsCharts from "@/components/StatsCharts";
-import { getStats, getWatchlistTags } from "@/lib/api";
-import { useAuth } from "@/lib/auth";
-import { cn } from "@/lib/utils";
-import { resolveTagColor, toRgba } from "@/lib/watchStatus";
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import StatsCharts from '@/components/StatsCharts';
+import { getStats, getWatchlistTags } from '@/lib/api';
+import { useAuth } from '@/lib/auth';
+import { cn } from '@/lib/utils';
+import { resolveTagColor, toRgba } from '@/lib/watchStatus';
 
 export default function StatsPage() {
   const { user } = useAuth();
   const [includeStatuses, setIncludeStatuses] = useState<string[]>([]);
 
   const { data: tagsData } = useQuery({
-    queryKey: ["watchlist", "tags"],
+    queryKey: ['watchlist', 'tags'],
     queryFn: () => getWatchlistTags(),
     enabled: !!user,
   });
 
   const availableTags = tagsData?.tags ?? [];
 
-  const { data: stats, isLoading, error, refetch, isFetching } = useQuery({
-    queryKey: ["stats", includeStatuses],
+  const {
+    data: stats,
+    isLoading,
+    error,
+    refetch,
+    isFetching,
+  } = useQuery({
+    queryKey: ['stats', includeStatuses],
     queryFn: () =>
       getStats({
         includeWatched: includeStatuses,
@@ -52,10 +58,8 @@ export default function StatsPage() {
                 key={tag.tag}
                 onClick={() => toggleIncludeStatus(tag.tag)}
                 className={cn(
-                  "text-xs px-2.5 py-1 rounded-full border transition-all duration-200",
-                  active
-                    ? ""
-                    : "text-muted-foreground hover:text-foreground"
+                  'text-xs px-2.5 py-1 rounded-full border transition-all duration-200',
+                  active ? '' : 'text-muted-foreground hover:text-foreground'
                 )}
                 style={
                   active
@@ -75,9 +79,7 @@ export default function StatsPage() {
             );
           })}
           {availableTags.length === 0 && (
-            <span className="text-xs text-muted-foreground">
-              No tags yet
-            </span>
+            <span className="text-xs text-muted-foreground">No tags yet</span>
           )}
           {includeStatuses.length > 0 && (
             <button
@@ -99,15 +101,14 @@ export default function StatsPage() {
       ) : error ? (
         <div className="flex flex-col items-start gap-3">
           <p className="text-destructive text-sm">
-            We couldn&apos;t load the statistics. Check your connection and try
-            again.
+            We couldn&apos;t load the statistics. Check your connection and try again.
           </p>
           <button
             onClick={() => refetch()}
             disabled={isFetching}
             className="px-3 py-1.5 text-sm rounded border hover:opacity-80 disabled:opacity-50"
           >
-            {isFetching ? "Retrying…" : "Try again"}
+            {isFetching ? 'Retrying…' : 'Try again'}
           </button>
         </div>
       ) : stats ? (

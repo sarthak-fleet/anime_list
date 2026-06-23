@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link } from '@tanstack/react-router';
 
 export default function TermsPage() {
   return (
@@ -11,23 +11,21 @@ export default function TermsPage() {
 
       <h2 className="mt-8 text-base font-semibold">Data sources</h2>
       <p className="mt-2">
-        Anime / manga metadata is sourced from the public Jikan and
-        AniList APIs and refreshed on a schedule. Each entry traces
-        back to MAL / AniList; we add structure on top, not new claims
+        Anime / manga metadata is sourced from the public Jikan and AniList APIs and refreshed on a
+        schedule. Each entry traces back to MAL / AniList; we add structure on top, not new claims
         about the works themselves.
       </p>
 
       <h2 className="mt-8 text-base font-semibold">Your watchlist</h2>
       <p className="mt-2">
-        Signed-in users get a personal watchlist tied to their Google
-        account. Watchlists are private to your account by default.
+        Signed-in users get a personal watchlist tied to their Google account. Watchlists are
+        private to your account by default.
       </p>
 
       <h2 className="mt-8 text-base font-semibold">No warranty</h2>
       <p className="mt-2">
-        Provided as-is. Air dates, episode counts, and synopses come
-        from upstream sources and can drift. Cross-check before
-        marathon-watching.
+        Provided as-is. Air dates, episode counts, and synopses come from upstream sources and can
+        drift. Cross-check before marathon-watching.
       </p>
     </main>
   );

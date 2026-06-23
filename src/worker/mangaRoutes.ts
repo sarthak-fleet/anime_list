@@ -1,49 +1,43 @@
-import type { Hono } from "hono";
-import { filterMangaList, getMangaFieldValue } from "../dataProcessor";
-import {
-  deleteFromMangaWatchlist,
-  getMangaWatchlist,
-  upsertMangaWatchlist,
-} from "../db/watchlist";
-import { getMangaByMalId } from "../db/mangaData";
-import { migrateMangaCatalogTable } from "../db/mangaMigrations";
-import { mangaStore } from "../store/mangaStore";
-import { hideWatchedItems, takePage } from "../controllers/helpers";
-import { mangaFilterRequestSchema } from "../validators/mangaFilters";
-import { watchedListRemoveSchema, watchedListSchema } from "../validators/watchedList";
-import {
-  ARRAY_ACTIONS,
-  COMPARISON_ACTIONS,
-  TEXT_SEARCH_ACTIONS,
-} from "../types/anime";
+import type { Hono } from 'hono';
+import { filterMangaList, getMangaFieldValue } from '../dataProcessor';
+import { deleteFromMangaWatchlist, getMangaWatchlist, upsertMangaWatchlist } from '../db/watchlist';
+import { getMangaByMalId } from '../db/mangaData';
+import { migrateMangaCatalogTable } from '../db/mangaMigrations';
+import { mangaStore } from '../store/mangaStore';
+import { hideWatchedItems, takePage } from '../controllers/helpers';
+import { mangaFilterRequestSchema } from '../validators/mangaFilters';
+import { watchedListRemoveSchema, watchedListSchema } from '../validators/watchedList';
+import { ARRAY_ACTIONS, COMPARISON_ACTIONS, TEXT_SEARCH_ACTIONS } from '../types/anime';
 import {
   MANGA_ARRAY_FIELDS,
   MANGA_BOOLEAN_FIELDS,
   MANGA_NUMERIC_FIELDS,
   MANGA_STRING_FIELDS,
-} from "../types/manga";
-import type { MangaFilterRequestBody } from "../validators/mangaFilters";
-import type { MangaItem } from "../types/manga";
+} from '../types/manga';
+import type { MangaFilterRequestBody } from '../validators/mangaFilters';
+import type { MangaItem } from '../types/manga';
 
 type AuthMiddleware = (
   c: {
-    req: { header: (name: string) => string | undefined; param: (name: string) => string; json: () => Promise<unknown>; query: (name: string) => string | undefined };
+    req: {
+      header: (name: string) => string | undefined;
+      param: (name: string) => string;
+      json: () => Promise<unknown>;
+      query: (name: string) => string | undefined;
+    };
     set: (key: string, value: unknown) => void;
     get: (key: string) => { userId: string } | undefined;
     json: (data: unknown, status?: number) => Response;
   },
-  next: () => Promise<void>,
-) => Promise<Response | void>;
+  next: () => Promise<void>
+) => Promise<Response | undefined>;
 
 function truncateSynopsis(text?: string, max = 180): string | undefined {
   if (!text) return undefined;
   return text.length <= max ? text : `${text.slice(0, max).trim()}…`;
 }
 
-function sortMangaList(
-  list: MangaItem[],
-  sortBy: MangaFilterRequestBody["sortBy"],
-) {
+function sortMangaList(list: MangaItem[], sortBy: MangaFilterRequestBody['sortBy']) {
   if (!sortBy) return list;
   return [...list].sort((a, b) => {
     const aValue = (getMangaFieldValue(a, sortBy) as number) || 0;
@@ -78,11 +72,11 @@ let mangaCatalogInitialized = false;
 
 export function registerMangaRoutes(
   app: Hono,
-  middleware: { requireAuth: AuthMiddleware; optionalAuth: AuthMiddleware },
+  middleware: { requireAuth: AuthMiddleware; optionalAuth: AuthMiddleware }
 ) {
   const { requireAuth, optionalAuth } = middleware;
 
-  app.use("/api/manga/*", async (_c, next) => {
+  app.use('/api/manga/*', async (_c, next) => {
     if (!mangaCatalogInitialized) {
       await migrateMangaCatalogTable();
       mangaCatalogInitialized = true;
@@ -90,40 +84,38 @@ export function registerMangaRoutes(
     await next();
   });
 
-  app.get("/api/manga/fields", (c) =>
+  app.get('/api/manga/fields', (c) =>
     c.json({
       numeric: MANGA_NUMERIC_FIELDS,
       array: MANGA_ARRAY_FIELDS,
       string: MANGA_STRING_FIELDS,
       boolean: MANGA_BOOLEAN_FIELDS,
-    }),
+    })
   );
 
-  app.get("/api/manga/filters", (c) =>
+  app.get('/api/manga/filters', (c) =>
     c.json({
       comparison: COMPARISON_ACTIONS,
       array: ARRAY_ACTIONS,
       text: TEXT_SEARCH_ACTIONS,
-    }),
+    })
   );
 
-  app.post("/api/manga/search", optionalAuth, async (c) => {
+  app.post('/api/manga/search', optionalAuth, async (c) => {
     const body = await c.req.json();
     const parsed = mangaFilterRequestSchema.safeParse(body);
     if (!parsed.success) {
       return c.json(
         {
-          error: "Invalid manga search payload",
-          details: parsed.error.issues.map(
-            (i) => `${i.path.join(".")}: ${i.message}`,
-          ),
+          error: 'Invalid manga search payload',
+          details: parsed.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`),
         },
-        400,
+        400
       );
     }
 
     const { filters, hideWatched, pagesize, offset, sortBy } = parsed.data;
-    const user = c.get("user");
+    const user = c.get('user');
     let filtered = await filterMangaList(filters);
 
     if (user?.userId) {
@@ -131,7 +123,7 @@ export function registerMangaRoutes(
         filtered,
         hideWatched,
         () => getMangaWatchlist(user.userId),
-        (list) => list.manga,
+        (list) => list.manga
       );
     }
 
@@ -142,10 +134,10 @@ export function registerMangaRoutes(
     });
   });
 
-  app.get("/api/manga/stats", optionalAuth, async (c) => {
-    const user = c.get("user");
-    const hideWatched = (c.req.query("hideWatched") || "")
-      .split(",")
+  app.get('/api/manga/stats', optionalAuth, async (c) => {
+    const user = c.get('user');
+    const hideWatched = (c.req.query('hideWatched') || '')
+      .split(',')
       .map((s) => s.trim())
       .filter(Boolean);
 
@@ -155,30 +147,27 @@ export function registerMangaRoutes(
         mangaList,
         hideWatched,
         () => getMangaWatchlist(user.userId),
-        (list) => list.manga,
+        (list) => list.manga
       );
     }
 
     if (mangaList.length === 0) {
-      return c.json({ error: "No manga data found. Run db:seed:manga first." }, 404);
+      return c.json({ error: 'No manga data found. Run db:seed:manga first.' }, 404);
     }
 
-    const { getMangaStats } = await import("../statistics");
+    const { getMangaStats } = await import('../statistics');
     return c.json(await getMangaStats(mangaList));
   });
 
-  app.get("/api/manga/random", async (c) => {
-    const genre = (c.req.query("genre") || "").trim();
-    const limit = Math.min(
-      Math.max(parseInt(c.req.query("limit") || "1", 10) || 1, 1),
-      20,
-    );
+  app.get('/api/manga/random', async (c) => {
+    const genre = (c.req.query('genre') || '').trim();
+    const limit = Math.min(Math.max(parseInt(c.req.query('limit') || '1', 10) || 1, 1), 20);
 
     let catalog = await mangaStore.getMangaList();
     if (genre) {
       const normalizedGenre = genre.toLowerCase();
       catalog = catalog.filter((item) =>
-        Object.keys(item.genres).some((g) => g.toLowerCase() === normalizedGenre),
+        Object.keys(item.genres).some((g) => g.toLowerCase() === normalizedGenre)
       );
     }
 
@@ -196,8 +185,8 @@ export function registerMangaRoutes(
     return c.json({ results });
   });
 
-  app.get("/api/manga/watchlist/enriched", requireAuth, async (c) => {
-    const user = c.get("user")!;
+  app.get('/api/manga/watchlist/enriched', requireAuth, async (c) => {
+    const user = c.get('user')!;
     const watchlist = await getMangaWatchlist(user.userId);
     if (!watchlist) return c.json({ items: [] });
 
@@ -225,47 +214,38 @@ export function registerMangaRoutes(
     return c.json({ items });
   });
 
-  app.get("/api/manga/watchlist", requireAuth, async (c) => {
-    const user = c.get("user")!;
+  app.get('/api/manga/watchlist', requireAuth, async (c) => {
+    const user = c.get('user')!;
     const watchlist = await getMangaWatchlist(user.userId);
-    if (!watchlist) return c.json({ error: "Manga watchlist not found" }, 404);
+    if (!watchlist) return c.json({ error: 'Manga watchlist not found' }, 404);
     return c.json(watchlist);
   });
 
-  app.post("/api/manga/watched/add", requireAuth, async (c) => {
+  app.post('/api/manga/watched/add', requireAuth, async (c) => {
     const body = await c.req.json();
     const parsed = watchedListSchema.safeParse(body);
     if (!parsed.success) {
-      return c.json(
-        { error: "Invalid watchlist payload", details: parsed.error.issues },
-        400,
-      );
+      return c.json({ error: 'Invalid watchlist payload', details: parsed.error.issues }, 400);
     }
-    const user = c.get("user")!;
+    const user = c.get('user')!;
     await upsertMangaWatchlist(
       parsed.data.mal_ids.map(String),
       parsed.data.status,
       user.userId,
-      parsed.data.tagColor,
+      parsed.data.tagColor
     );
-    return c.json({ success: true, message: "Manga added to watchlist" });
+    return c.json({ success: true, message: 'Manga added to watchlist' });
   });
 
-  app.post("/api/manga/watched/remove", requireAuth, async (c) => {
+  app.post('/api/manga/watched/remove', requireAuth, async (c) => {
     const body = await c.req.json();
     const parsed = watchedListRemoveSchema.safeParse(body);
     if (!parsed.success) {
-      return c.json(
-        { error: "Invalid watchlist payload", details: parsed.error.issues },
-        400,
-      );
+      return c.json({ error: 'Invalid watchlist payload', details: parsed.error.issues }, 400);
     }
-    const user = c.get("user")!;
-    await deleteFromMangaWatchlist(
-      parsed.data.mal_ids.map(String),
-      user.userId,
-    );
-    return c.json({ success: true, message: "Manga removed from watchlist" });
+    const user = c.get('user')!;
+    await deleteFromMangaWatchlist(parsed.data.mal_ids.map(String), user.userId);
+    return c.json({ success: true, message: 'Manga removed from watchlist' });
   });
 
   // Catalog data refreshes once a day, so anonymous detail responses are
@@ -273,25 +253,23 @@ export function registerMangaRoutes(
   // state, so we bypass the cache when a user is present. Bump :v1 to
   // invalidate after response-shape changes.
   const MANGA_DETAIL_CACHE_TTL_SECONDS = 24 * 60 * 60;
-  const MANGA_DETAIL_CACHE_KEY_PREFIX = "https://mal-cache.local/api/manga/";
+  const MANGA_DETAIL_CACHE_KEY_PREFIX = 'https://mal-cache.local/api/manga/';
 
-  app.get("/api/manga/:malId", optionalAuth, async (c) => {
-    const malId = Number(c.req.param("malId"));
+  app.get('/api/manga/:malId', optionalAuth, async (c) => {
+    const malId = Number(c.req.param('malId'));
     if (!Number.isInteger(malId) || malId <= 0) {
-      return c.json({ error: "Invalid manga id" }, 400);
+      return c.json({ error: 'Invalid manga id' }, 400);
     }
 
-    const user = c.get("user");
+    const user = c.get('user');
     const edgeCache = (caches as unknown as { default: Cache }).default;
-    const cacheUrl = user
-      ? null
-      : `${MANGA_DETAIL_CACHE_KEY_PREFIX}${malId}:v1`;
+    const cacheUrl = user ? null : `${MANGA_DETAIL_CACHE_KEY_PREFIX}${malId}:v1`;
 
     if (cacheUrl) {
       const cached = await edgeCache.match(cacheUrl);
       if (cached) {
         const hit = new Response(cached.body, cached);
-        hit.headers.set("X-Detail-Cache", "HIT");
+        hit.headers.set('X-Detail-Cache', 'HIT');
         return hit;
       }
     }
@@ -302,7 +280,7 @@ export function registerMangaRoutes(
     ]);
 
     if (!manga) {
-      return c.json({ error: "Manga not found" }, 404);
+      return c.json({ error: 'Manga not found' }, 404);
     }
 
     const entry = watchlist?.manga[String(malId)];
@@ -339,14 +317,14 @@ export function registerMangaRoutes(
     if (cacheUrl) {
       const cacheable = new Response(jsonResponse.body, jsonResponse);
       cacheable.headers.set(
-        "Cache-Control",
-        `public, max-age=0, s-maxage=${MANGA_DETAIL_CACHE_TTL_SECONDS}`,
+        'Cache-Control',
+        `public, max-age=0, s-maxage=${MANGA_DETAIL_CACHE_TTL_SECONDS}`
       );
-      cacheable.headers.set("X-Detail-Cache", "MISS");
+      cacheable.headers.set('X-Detail-Cache', 'MISS');
       c.executionCtx.waitUntil(edgeCache.put(cacheUrl, cacheable.clone()));
       return cacheable;
     }
-    jsonResponse.headers.set("X-Detail-Cache", "BYPASS");
+    jsonResponse.headers.set('X-Detail-Cache', 'BYPASS');
     return jsonResponse;
   });
 }
