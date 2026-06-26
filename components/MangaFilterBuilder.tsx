@@ -121,7 +121,9 @@ export default function MangaFilterBuilder() {
     }, 300);
   };
 
-  const [showAdvanced, setShowAdvanced] = useState(() => activeAdvancedFilters.length > 0);
+  // Open whenever any custom filter row exists (even one with an empty value),
+  // so reloading a URL with in-progress rows doesn't hide them.
+  const [showAdvanced, setShowAdvanced] = useState(() => filters.length > 0);
 
   const resetPage = () => setCurrentPage(1);
 

@@ -1,5 +1,17 @@
 import { Link } from '@tanstack/react-router';
 import { SITE_NAME } from '@/lib/brand';
+import { filtersParser } from '@/lib/filterMetadata';
+import type { SearchFilter } from '@/lib/types';
+
+// score 8+, TV, finished airing — expressed in the params FilterBuilder reads
+// (advanced `af` filters + `airing`), serialized with the shared wrapped form.
+const TOP_TV_FILTERS: SearchFilter[] = [
+  { field: 'score', action: 'GREATER_THAN_OR_EQUALS', value: 8 },
+  { field: 'type', action: 'EQUALS', value: 'TV' },
+];
+const TOP_TV_HREF = `/search?af=${encodeURIComponent(
+  filtersParser.serialize(TOP_TV_FILTERS)
+)}&airing=no&sort=score`;
 
 const FEATURES = [
   {
@@ -99,7 +111,7 @@ export default function HomePage() {
           </p>
           <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
             <a
-              href="/search?score_min=8&type=TV&status=Finished+Airing"
+              href={TOP_TV_HREF}
               className="rounded-xl border border-border bg-card p-5 text-left transition-colors hover:border-foreground/30"
             >
               <p className="text-sm font-medium text-foreground">Top-rated TV anime</p>
