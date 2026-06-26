@@ -3,9 +3,6 @@ on:
   push:
     branches: [main]
     paths: ['.github/workflows/deploy.yml', 'src/**', 'components/**', 'lib/**', 'index.html', 'vite.config.*', 'package.json', 'pnpm-lock.yaml', 'wrangler.toml']
-  pull_request:
-    branches: [main]
-    paths: ['.github/workflows/deploy.yml', 'src/**', 'components/**', 'lib/**', 'index.html', 'vite.config.*', 'package.json', 'pnpm-lock.yaml', 'wrangler.toml']
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -13,7 +10,6 @@ concurrency:
 
 jobs:
   deploy-production:
-    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -41,41 +37,3 @@ jobs:
           for path in / /anime/1; do
             curl --fail --retry 5 --retry-delay 5 --max-time 20 "https://anime-list-9lk.pages.dev${path}" >/dev/null
           done
-
-  deploy-preview:
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
-    steps:
-      - uses: actions/checkout@v6
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v6
-        with: { node-version: '22', cache: 'pnpm' }
-      - run: pnpm install --frozen-lockfile --ignore-scripts
-      - run: pnpm build
-        env:
-          VITE_API_URL: https://mal-api.sarthakagrawal927.workers.dev
-          VITE_GOOGLE_CLIENT_ID: 207924374505-0mur9a99sal0ckob0vt38pcdj360ond5.apps.googleusercontent.com
-          VITE_SAASMAKER_API_KEY: pk_fb1fe870205272a447298bfac32122383426d6a1c1fb10ab
-      - id: deploy
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=anime-list --branch=pr-${{ github.event.number }} --commit-dirty=true
-      - name: Smoke preview
-        run: |
-          set -euo pipefail
-          url="${{ steps.deploy.outputs.deployment-url }}"
-          curl --fail --retry 5 --retry-delay 5 --max-time 20 "${url}/" >/dev/null
-      - uses: actions/github-script@v7
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: `Preview: https://pr-${{ github.event.number }}.anime-list-9lk.pages.dev`
-            })
