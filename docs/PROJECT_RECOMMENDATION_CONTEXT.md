@@ -59,9 +59,9 @@ MAL Explorer A modern anime discovery platform that helps you find your next fav
 ## Current Stack
 
 - Languages: `TypeScript`
-- Frameworks/tools: `Cloudflare Workers`, `Next.js`, `OpenNext Cloudflare`, `Playwright`, `React`, `Tailwind CSS`
+- Frameworks/tools: `Cloudflare Workers`, `Vite`, `TanStack Router`, `Playwright`, `React`, `Tailwind CSS`
 - Config files:
-- `next.config.ts`
+- `vite.config.ts`
 - `playwright.config.ts`
 - `wrangler.toml`
 
@@ -137,8 +137,7 @@ Package scripts:
 - `dev:fe`
 - `dev:worker`
 - `lint`
-- `pages:build`
-- `pages:bundle`
+- `build`
 - `prepare`
 - `test`
 - `test:e2e`

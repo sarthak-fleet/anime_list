@@ -1,5 +1,5 @@
 # anime_list — PROJECT STATUS
-Last updated: 2026-06-20
+Last updated: 2026-06-28
 
 ## Why / What
 
@@ -7,7 +7,7 @@ Last updated: 2026-06-20
 
 **Users:** Anime/manga fans filtering 40k+ catalog titles; signed-in users tracking watchlists and discovering seasonal picks.
 
-**Constraints:** Operational stability over feature expansion. Measure engagement on newer surfaces (quiz, collections) before expanding them. README/CI still reference Next.js/OpenNext in places — runtime is Vite SPA; trust this file and `package.json`.
+**Constraints:** Operational stability over feature expansion. Measure engagement on newer surfaces (quiz, collections) before expanding them.
 
 **IN scope:** Vite SPA frontend, `mal-api` Hono worker, Turso, daily/quarterly catalog sync, in-app alerts.
 
@@ -139,10 +139,9 @@ Last updated: 2026-06-20
 ### Planned
 
 1. Operational stability — Pages 500 regressions, MAL CDN image policy.
-2. Fix CI/deploy drift: replace stale `pages:build` / `NEXT_PUBLIC_*` references in `.github/workflows/ci.yml` and `deploy.yml` with Vite `pnpm build`.
-3. Measure `/quiz` completion-to-search clickthrough before persistence, OG images, or share analytics.
-4. Measure collection share clickthrough before discovery ranking or social features.
-5. Add e2e for discover, watchlist import, collections, alerts (`e2e/`).
+2. Measure `/quiz` completion-to-search clickthrough before persistence, OG images, or share analytics.
+3. Measure collection share clickthrough before discovery ranking or social features.
+4. Add e2e for discover, watchlist import, collections, alerts (`e2e/`).
 
 ### Deferred
 
@@ -152,7 +151,5 @@ Last updated: 2026-06-20
 
 ### Blocked
 
-- README/AGENTS/deploy CI still say Next.js/OpenNext/`pages:build`; runtime is Vite SPA — CI may fail or skip.
-- `ci.yml` and `deploy.yml` reference missing `pnpm pages:build` — deploy pipeline drift.
 - MAL CDN image policy and intermittent Pages 500s are recurring operational risks.
 - No e2e for discover, watchlist import, collections, alerts, auth flows, manga routes.

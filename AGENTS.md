@@ -8,18 +8,18 @@ Also read and follow the shared fleet-level agent standard at `../AGENTS.md`. Tr
 Anime/manga discovery platform with multi-field filtering, personal watchlists, schedule tracking, and daily auto-sync from MyAnimeList via Jikan API.
 
 ## Stack
-- Framework: Next.js 16 (App Router) + Cloudflare Worker API (Hono)
+- Framework: Vite SPA + TanStack Router (React 19) + Cloudflare Worker API (Hono)
 - Language: TypeScript (full stack)
 - Styling: Tailwind CSS v4 + shadcn/ui
 - DB: Turso (libSQL) — anime + manga catalogs, users, watchlists (single DB in prod; optional `TURSO_MANGA_*` override)
 - Auth: Google OAuth 2.0 + JWT (`jose`)
 - Testing: Vitest (unit), Playwright (e2e)
-- Deploy: Cloudflare Pages (`anime-list-9lk.pages.dev`) + Worker `mal-api` (`wrangler deploy`)
+- Deploy: Cloudflare Pages (`anime-list-9lk.pages.dev`, Vite static build) + Worker `mal-api` (`wrangler deploy`)
 - Package manager: pnpm
 
 ## Repo structure
 ```
-app/                     # Next.js pages (/, /manga, /stats, /watchlist, detail routes)
+src/                     # Vite SPA routes (TanStack Router file-based)
 components/              # FilterBuilder, MangaFilterBuilder, cards, charts
   discover/              # Shared discover filter UI
   ui/                    # shadcn/ui primitives
@@ -41,11 +41,11 @@ cleaned_manga_data.json  # Bootstrap seed for manga
 
 ## Key commands
 ```bash
-pnpm dev                  # Worker (:8787) + Next.js (:3000)
+pnpm dev                  # Worker (:8787) + Vite (:5173)
 pnpm dev:be               # Worker only
 pnpm dev:fe               # Frontend only
-pnpm build                # Next.js production build
-pnpm test                 # Jest unit tests
+pnpm build                # Vite production build
+pnpm test                 # Vitest unit tests
 pnpm test:e2e:anime-detail
 pnpm db:seed              # Seed anime catalog from JSON
 pnpm db:seed:manga        # Seed manga catalog from JSON

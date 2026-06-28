@@ -8,7 +8,7 @@ A modern anime discovery platform that helps you find your next favorite show.
 
 | Concern | Service |
 |---------|---------|
-| Hosting | Cloudflare Pages (`anime-list`, anime-list-9lk.pages.dev) via `@opennextjs/cloudflare` |
+| Hosting | Cloudflare Pages (`anime-list`, anime-list-9lk.pages.dev) — Vite SPA static build |
 | API | Cloudflare Worker (`mal-api`) — Hono, daily cron at 03:00 UTC |
 | Database | Turso (libSQL) |
 | Auth | Google OAuth 2.0 + JWT |
@@ -35,7 +35,7 @@ Finding quality anime to watch is hard. MyAnimeList has thousands of titles, but
 ```mermaid
 graph TB
     subgraph "Client Layer - Cloudflare Pages"
-        UI[Next.js Frontend<br/>React 19 + TailwindCSS]
+        UI[Vite SPA Frontend<br/>React 19 + TailwindCSS]
         Components[UI Components<br/>FilterBuilder, AnimeCard, Stats]
         Cache[TanStack Query<br/>Client-side Cache]
     end
@@ -84,7 +84,7 @@ graph TB
 
 ### Key Components
 
-- **Frontend (Cloudflare Pages)**: Next.js 16 with App Router, TailwindCSS 4 + shadcn/ui components
+- **Frontend (Cloudflare Pages)**: Vite SPA + TanStack Router, React 19, TailwindCSS 4 + shadcn/ui components
 - **Backend (Cloudflare Worker `mal-api`)**: Hono API with stale-while-revalidate in-memory cache for <1ms response times
 - **Database (Turso)**: libSQL database storing anime data (14,800+ titles) and user watchlists
 - **Caching Strategy**: 1-hour TTL with background refresh - 100% of requests served instantly from memory
@@ -107,16 +107,16 @@ cd mal
 npm install
 ```
 
-2. Create `.env` from `.env.example` and set Turso + Google OAuth values. For local dev, `NEXT_PUBLIC_API_URL=http://localhost:8787`.
+2. Create `.env` from `.env.example` and set Turso + Google OAuth values. For local dev, `VITE_API_URL=http://localhost:8787`.
 
 3. Start development:
 ```bash
 pnpm dev
 ```
 
-This runs the Cloudflare Worker API (port 8787) and Next.js (port 3000) together.
+This runs the Cloudflare Worker API (port 8787) and Vite dev server (port 5173) together.
 
-4. Open http://localhost:3000
+4. Open http://localhost:5173
 
 ### Available Commands
 
@@ -124,8 +124,8 @@ This runs the Cloudflare Worker API (port 8787) and Next.js (port 3000) together
 pnpm dev           # Worker + frontend
 pnpm dev:be        # Worker only (port 8787)
 pnpm dev:fe        # Frontend only
-pnpm build         # Build frontend for production
-pnpm test          # Unit tests
+pnpm build         # Vite production build
+pnpm test          # Vitest unit tests
 pnpm db:seed       # Seed Turso database from JSON (one-time)
 pnpm db:update     # Update anime data from Jikan API
 ```
@@ -134,7 +134,7 @@ pnpm db:update     # Update anime data from Jikan API
 
 **Frontend (Cloudflare Pages — project `anime-list`)**
 - Auto-deploys on push to main via GitHub Actions (`.github/workflows/deploy.yml`)
-- `NEXT_PUBLIC_*` build vars are set in the workflow; runtime vars live in `wrangler.toml`
+- `VITE_*` build vars are set in the workflow; runtime vars live in `wrangler.toml`
 
 **API Worker (Cloudflare Worker — `mal-api`)**
 - Deploy with `pnpm deploy:worker` (`wrangler deploy --config wrangler.cron.toml`)
